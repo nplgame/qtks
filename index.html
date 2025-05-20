@@ -142,8 +142,8 @@
     </div>
 
     <script>
-        // Lấy danh sách game từ localStorage
-        let games = JSON.parse(localStorage.getItem('games')) || [
+        // Danh sách game mặc định
+        const defaultGames = [
             {
                 name: "Baldur's Gate 3",
                 image: "https://via.placeholder.com/300x300?text=Baldur's+Gate+3",
@@ -163,6 +163,9 @@
                 category: "Nhập vai"
             }
         ];
+
+        // Lấy danh sách game từ localStorage
+        let games = JSON.parse(localStorage.getItem('games')) || defaultGames;
 
         // Hàm tạo thẻ game
         function createGameCard(game) {
