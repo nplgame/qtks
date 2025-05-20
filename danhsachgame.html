@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Game - Game Store</title>
+    <style>
+        :root {
+            --primary-color: #6c5ce7;
+            --secondary-color: #a29bfe;
+            --dark-bg: #1e293b;
+            --darker-bg: #0f172a;
+            --text-light: #f1f5f9;
+            --card-bg: #2d3748;
+            --price-color: #a855f7;
+            --action-color: #e74c3c;
+            --rpg-color: #3498db;
+            --strategy-color: #2ecc71;
+            --sport-color: #f39c12;
+            --hot-color: #e84393;
+            --other-color: #95a5a6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--darker-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--dark-bg);
+            padding: 15px 0;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .store-name {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+
+        .filter-container {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .filter-title {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .category-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .category-filter {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-filter:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .category-filter.active {
+            background-color: var(--primary-color);
+        }
+
+        .category-filter.action {
+            border-left: 4px solid var(--action-color);
+        }
+
+        .category-filter.rpg {
+            border-left: 4px solid var(--rpg-color);
+        }
+
+        .category-filter.strategy {
+            border-left: 4px solid var(--strategy-color);
+        }
+
+        .category-filter.sport {
+            border-left: 4px solid var(--sport-color);
+        }
+
+        .category-filter.hot {
+            border-left: 4px solid var(--hot-color);
+        }
+
+        .category-filter.other {
+            border-left: 4px solid var(--other-color);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .game-details {
+            padding: 15px;
+        }
+
+        .game-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .game-price {
+            color: var(--price-color);
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .game-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .game-category {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+
+        .game-category.action {
+            background-color: var(--action-color);
+        }
+
+        .game-category.rpg {
+            background-color: var(--rpg-color);
+        }
+
+        .game-category.strategy {
+            background-color: var(--strategy-color);
+        }
+
+        .game-category.sport {
+            background-color: var(--sport-color);
+        }
+
+        .game-category.hot {
+            background-color: var(--hot-color);
+        }
+
+        .game-category.other {
+            background-color: var(--other-color);
+        }
+
+        .buy-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: 600;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .buy-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .no-games {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 30px;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            padding: 20px;
+            background-color: var(--dark-bg);
+        }
+
+        /* Responsive fixes */
+        @media (max-width: 768px) {
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            }
+        }
+
+        @media (max-width: 500px) {
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .category-filters {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+
+        /* Category translations for the display */
+        .category-name {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 class="store-name">Game Store</h1>
+        <p>Khám phá và mua sắm game yêu thích của bạn</p>
+    </header>
+
+    <div class="container">
+        <div class="filter-container">
+            <h2 class="filter-title">Lọc theo thể loại:</h2>
+            <div class="category-filters">
+                <div class="category-filter active" data-category="all">Tất cả</div>
+                <div class="category-filter action" data-category="action">Hành Động</div>
+                <div class="category-filter rpg" data-category="rpg">Nhập Vai</div>
+                <div class="category-filter strategy" data-category="strategy">Chiến Thuật</div>
+                <div class="category-filter sport" data-category="sport">Thể Thao</div>
+                <div class="category-filter hot" data-category="hot">Game Hot</div>
+                <div class="category-filter other" data-category="other">Khác</div>
+            </div>
+        </div>
+
+        <div class="games-grid" id="gamesGrid">
+            <!-- Games will be dynamically listed here -->
+            <div class="no-games">Đang tải danh sách game...</div>
+        </div>
+
+        <a href="index.html" class="back-link">Quay Lại Trang Chủ</a>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Game Store - Tất cả các quyền được bảo lưu</p>
+    </footer>
+
+    <script>
+        // Initialize games from localStorage or use empty array
+        let games = JSON.parse(localStorage.getItem('games')) || [];
+        let currentFilter = 'all';
+
+        // DOM Elements
+        const gamesGrid = document.getElementById('gamesGrid');
+        const categoryFilters = document.querySelectorAll('.category-filter');
+
+        // Category translations for display
+        const categoryNames = {
+            'action': 'Hành Động',
+            'rpg': 'Nhập Vai',
+            'strategy': 'Chiến Thuật',
+            'sport': 'Thể Thao',
+            'hot': 'Game Hot',
+            'other': 'Khác'
+        };
+
+        // Function to format price with thousands separator
+        function formatPrice(price) {
+            return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        // Function to render the grid of games
+        function renderGamesGrid() {
+            // Filter games based on current category filter
+            let filteredGames = games;
+            if (currentFilter !== 'all') {
+                filteredGames = games.filter(game => game.categories && game.categories.includes(currentFilter));
+            }
+
+            // Generate HTML for games
+            if (filteredGames.length === 0) {
+                gamesGrid.innerHTML = `
+                    <div class="no-games">
+                        <h3>Không tìm thấy game nào${currentFilter !== 'all' ? ' trong thể loại này' : ''}.</h3>
+                        <p>Vui lòng thử chọn thể loại khác hoặc kiểm tra lại sau.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const gamesHTML = filteredGames.map(game => {
+                // Generate category badges HTML
+                const categoriesHTML = game.categories ? game.categories.map(category => `
+                    <span class="game-category ${category}">
+                        <span class="category-name">${categoryNames[category] || 'Khác'}</span>
+                    </span>
+                `).join('') : '';
+
+                return `
+                    <div class="game-card">
+                        <img src="${game.image}" alt="${game.title}" class="game-image">
+                        <div class="game-details">
+                            <h3 class="game-title">${game.title}</h3>
+                            <div class="game-price">${formatPrice(game.price)} VND</div>
+                            <div class="game-categories">
+                                ${categoriesHTML}
+                            </div>
+                            <button class="buy-btn">Mua Ngay</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            gamesGrid.innerHTML = gamesHTML;
+        }
+
+        // Add event listeners to category filters
+        categoryFilters.forEach(filter => {
+            filter.addEventListener('click', () => {
+                // Remove active class from all filters
+                categoryFilters.forEach(f => f.classList.remove('active'));
+                
+                // Add active class to clicked filter
+                filter.classList.add('active');
+                
+                // Update current filter
+                currentFilter = filter.dataset.category;
+                
+                // Re-render games grid
+                renderGamesGrid();
+            });
+        });
+
+        // Initialize the games grid on page load
+        renderGamesGrid();
+
+        // Add event listener to buy buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('buy-btn')) {
+                const gameTitle = e.target.closest('.game-card').querySelector('.game-title').textContent;
+                alert(`Bạn đã thêm game "${gameTitle}" vào giỏ hàng!`);
+            }
+        });
+    </script>
+</body>
+</html>
