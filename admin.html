@@ -69,6 +69,14 @@
         .btn:hover {
             background-color: #5B21B6;
         }
+        .btn-edit {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
         #gameList {
             margin-top: 30px;
         }
@@ -84,14 +92,6 @@
         .game-item-actions {
             display: flex;
             gap: 10px;
-        }
-        .delete-btn {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
         }
     </style>
 </head>
@@ -154,12 +154,107 @@
         const gameIndexInput = document.getElementById('gameIndex');
         const submitBtn = document.getElementById('submitBtn');
         const cancelBtn = document.getElementById('cancelBtn');
+        const gameListContainer = document.getElementById('gameList');
 
         // Render danh sách game
         function renderGameList() {
-            const gameListElement = document.getElementById('gameList');
-            
             // Xóa danh sách cũ
-            const existingList = gameListElement.querySelector('div');
+            const existingList = gameListContainer.querySelector('div');
             if (existingList) {
-                exist
+                existingList.remove();
+            }
+
+            // Tạo danh sách mới
+            const listContainer = document.createElement('div');
+            
+            games.forEach((game, index) => {
+                const gameItem = document.createElement('div');
+                gameItem.classList.add('game-item');
+                gameItem.innerHTML = `
+                    <span>${game.name} (${game.category})</span>
+                    <div class="game-item-actions">
+                        <button onclick="editGame(${index})" class="btn btn-edit">Sửa</button>
+                        <button onclick="deleteGame(${index})" class="btn btn-delete">Xóa</button>
+                    </div>
+                `;
+                
+                listContainer.appendChild(gameItem);
+            });
+
+            gameListContainer.appendChild(listContainer);
+        }
+
+        // Thêm game mới
+        gameForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const gameIndex = parseInt(gameIndexInput.value);
+            
+            const game = {
+                name: gameNameInput.value,
+                image: gameImageInput.value,
+                downloadLink: gameDownloadLinkInput.value,
+                category: gameCategoryInput.value
+            };
+
+            if (gameIndex === -1) {
+                // Thêm game mới
+                games.push(game);
+            } else {
+                // Cập nhật game
+                games[gameIndex] = game;
+            }
+            
+            // Lưu vào localStorage
+            localStorage.setItem('games', JSON.stringify(games));
+            
+            // Render lại danh sách
+            renderGameList();
+            
+            // Đặt lại form
+            gameForm.reset();
+            gameIndexInput.value = -1;
+            submitBtn.textContent = 'Thêm Game';
+            cancelBtn.style.display = 'none';
+        });
+
+        // Xóa game
+        function deleteGame(index) {
+            // Xác nhận trước khi xóa
+            if (confirm('Bạn có chắc chắn muốn xóa game này không?')) {
+                games.splice(index, 1);
+                localStorage.setItem('games', JSON.stringify(games));
+                renderGameList();
+            }
+        }
+
+        // Sửa game
+        function editGame(index) {
+            const game = games[index];
+            
+            // Điền thông tin game vào form
+            gameNameInput.value = game.name;
+            gameImageInput.value = game.image;
+            gameDownloadLinkInput.value = game.downloadLink;
+            gameCategoryInput.value = game.category;
+            
+            // Cập nhật trạng thái form
+            gameIndexInput.value = index;
+            submitBtn.textContent = 'Cập Nhật Game';
+            cancelBtn.style.display = 'inline-block';
+        }
+
+        // Hủy chỉnh sửa
+        cancelBtn.addEventListener('click', function() {
+            // Đặt lại form
+            gameForm.reset();
+            gameIndexInput.value = -1;
+            submitBtn.textContent = 'Thêm Game';
+            this.style.display = 'none';
+        });
+
+        // Render danh sách game khi trang web tải
+        document.addEventListener('DOMContentLoaded', renderGameList);
+    </script>
+</body>
+</html>
