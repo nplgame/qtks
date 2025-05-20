@@ -1,330 +1,230 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Browser</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.development.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/react-router-dom@5.2.0/umd/react-router-dom.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6/babel.min.js"></script>
+    <title>Tải Game Miễn Phí</title>
     <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-card: #1E1E1E;
+            --text-light: #FFFFFF;
+            --accent-purple: #6D28D9;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            background-color: #1e293b;
-            color: white;
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .search-bar {
+            background-color: #2C2C2C;
+            border-radius: 30px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .search-bar input {
+            background: transparent;
+            border: none;
+            color: var(--text-light);
+            width: 100%;
+            outline: none;
+            font-size: 16px;
+        }
+        .category-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        .category-btn {
+            background-color: #2C2C2C;
+            color: #888;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+        .category-btn.active, .category-btn:hover {
+            background-color: var(--accent-purple);
+            color: var(--text-light);
+        }
+        .game-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
         }
         .game-card {
+            background-color: var(--bg-card);
+            border-radius: 10px;
+            overflow: hidden;
             transition: transform 0.3s ease;
+            position: relative;
         }
         .game-card:hover {
             transform: scale(1.05);
         }
+        .game-card img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+        .game-card .game-info {
+            padding: 15px;
+        }
+        .game-card .game-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .download-btn {
+            display: block;
+            background-color: var(--accent-purple);
+            color: var(--text-light);
+            text-align: center;
+            padding: 10px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .download-btn:hover {
+            background-color: #5B21B6;
+        }
+        .price-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .price-filter input {
+            accent-color: var(--accent-purple);
+        }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" placeholder="Tìm kiếm game..." id="searchInput">
+        </div>
 
-    <script type="text/babel">
-        const { BrowserRouter, Route, Switch, Link } = ReactRouterDOM;
+        <div class="category-filters">
+            <button class="category-btn active" data-category="Tất cả">Tất cả</button>
+            <button class="category-btn" data-category="Game Hot">Game Hot</button>
+            <button class="category-btn" data-category="Hành động">Hành động</button>
+            <button class="category-btn" data-category="Nhập vai">Nhập vai</button>
+            <button class="category-btn" data-category="Chiến thuật">Chiến thuật</button>
+            <button class="category-btn" data-category="Thể thao">Thể thao</button>
+            <button class="category-btn" data-category="Khác">Thể loại khác ▼</button>
+        </div>
 
-        // Initial Games Data
-        const initialGames = [
+        <div class="price-filter">
+            <input type="checkbox" id="free-games">
+            <label for="free-games">Áp dụng lọc giá</label>
+        </div>
+
+        <div class="game-list" id="gameList">
+            <!-- Game cards will be dynamically added here -->
+        </div>
+    </div>
+
+    <script>
+        // Lấy danh sách game từ localStorage
+        let games = JSON.parse(localStorage.getItem('games')) || [
             {
-                id: 1,
-                title: "Baldur's Gate 3",
-                image: "/api/placeholder/300/200?text=Baldur's+Gate+3",
-                category: ['Tất cả', 'Nhập vai']
+                name: "Baldur's Gate 3",
+                image: "https://via.placeholder.com/300x300?text=Baldur's+Gate+3",
+                downloadLink: "https://bit.ly/baldurs-gate-3",
+                category: "Game Hot"
             },
             {
-                id: 2,
-                title: "Assassin's Creed Shadows",
-                image: "/api/placeholder/300/200?text=Assassin's+Creed+Shadows",
-                category: ['Tất cả', 'Hành động']
+                name: "Assassin's Creed Shadows",
+                image: "https://via.placeholder.com/300x300?text=Assassin's+Creed+Shadows",
+                downloadLink: "https://bit.ly/assassins-creed-shadows",
+                category: "Hành động"
             },
             {
-                id: 3,
-                title: "The Elder Scrolls IV: Oblivion",
-                image: "/api/placeholder/300/200?text=Elder+Scrolls+Oblivion",
-                category: ['Tất cả', 'Nhập vai']
+                name: "The Elder Scrolls IV: Oblivion",
+                image: "https://via.placeholder.com/300x300?text=Elder+Scrolls+Oblivion",
+                downloadLink: "https://bit.ly/elder-scrolls-oblivion",
+                category: "Nhập vai"
             }
         ];
 
-        // Home/Index Page Component
-        const GameBrowser = () => {
-            const [activeCategory, setActiveCategory] = React.useState('Tất cả');
-            const [games] = React.useState(initialGames);
-
-            const categories = [
-                'Tất cả', 'Game Hot', 'Hành động', 'Nhập vai', 'Chiến thuật', 'Thể thao', 'Thể loại khác'
-            ];
-
-            return (
-                <div className="container mx-auto px-4 py-8">
-                    <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-3xl font-bold">Game Browser</h1>
-                        <Link 
-                            to="/admin" 
-                            className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700"
-                        >
-                            Đăng nhập Quản trị
-                        </Link>
-                    </div>
-
-                    <div className="search-bar mb-6">
-                        <input 
-                            type="text" 
-                            placeholder="Tìm kiếm game..."
-                            className="w-full px-4 py-2 rounded-full bg-gray-700 text-white"
-                        />
-                    </div>
-
-                    <div className="category-filter flex space-x-2 mb-6 overflow-x-auto">
-                        {categories.map((category) => (
-                            <button
-                                key={category}
-                                className={`px-4 py-2 rounded-full ${
-                                    activeCategory === category 
-                                    ? 'bg-purple-600 text-white' 
-                                    : 'bg-gray-700 text-gray-300'
-                                }`}
-                                onClick={() => setActiveCategory(category)}
-                            >
-                                {category}
-                            </button>
-                        ))}
-                        <div className="ml-auto">
-                            <button className="px-4 py-2 bg-gray-700 rounded-full flex items-center">
-                                Áp dụng lọc giá
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="game-grid grid grid-cols-3 gap-6">
-                        {games
-                            .filter(game => game.category.includes(activeCategory))
-                            .map((game) => (
-                            <div 
-                                key={game.title} 
-                                className="game-card bg-gray-800 rounded-lg overflow-hidden shadow-lg cursor-pointer"
-                            >
-                                <img 
-                                    src={game.image} 
-                                    alt={game.title} 
-                                    className="w-full h-64 object-cover"
-                                />
-                                <div className="p-4">
-                                    <h3 className="text-lg font-bold">{game.title}</h3>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+        // Hàm tạo thẻ game
+        function createGameCard(game) {
+            const card = document.createElement('div');
+            card.classList.add('game-card');
+            
+            card.innerHTML = `
+                <img src="${game.image}" alt="${game.name}">
+                <div class="game-info">
+                    <div class="game-name">${game.name}</div>
+                    <a href="${game.downloadLink}" class="download-btn" target="_blank">Tải Xuống</a>
                 </div>
-            );
-        };
+            `;
+            
+            return card;
+        }
 
-        // Admin Page Component
-        const AdminPanel = () => {
-            const [games, setGames] = React.useState(initialGames);
-            const [newGame, setNewGame] = React.useState({
-                title: '',
-                image: '',
-                category: []
+        // Render danh sách game
+        function renderGameList(filteredGames = null) {
+            const gameList = document.getElementById('gameList');
+            gameList.innerHTML = ''; // Xóa danh sách cũ
+
+            const gamesToRender = filteredGames || games;
+            gamesToRender.forEach(game => {
+                const gameCard = createGameCard(game);
+                gameList.appendChild(gameCard);
             });
-            const [adminPassword, setAdminPassword] = React.useState('');
-            const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+        }
 
-            const categories = [
-                'Tất cả', 'Game Hot', 'Hành động', 'Nhập vai', 'Chiến thuật', 'Thể thao', 'Thể loại khác'
-            ];
-
-            const handleLogin = () => {
-                // Simple admin password check (in a real app, use proper authentication)
-                if (adminPassword === 'admin123') {
-                    setIsLoggedIn(true);
-                } else {
-                    alert('Mật khẩu không đúng');
-                }
-            };
-
-            const handleAddGame = () => {
-                // Validate input
-                if (!newGame.title || newGame.category.length === 0) {
-                    alert('Vui lòng nhập đầy đủ thông tin');
-                    return;
-                }
-
-                // Add new game
-                const gameToAdd = {
-                    ...newGame,
-                    id: games.length + 1,
-                    image: newGame.image || `/api/placeholder/300/200?text=${encodeURIComponent(newGame.title)}`
-                };
-
-                setGames([...games, gameToAdd]);
+        // Xử lý các nút category
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Loại bỏ active khỏi tất cả các nút
+                categoryBtns.forEach(b => b.classList.remove('active'));
                 
-                // Reset form
-                setNewGame({ title: '', image: '', category: [] });
-            };
+                // Thêm active cho nút được chọn
+                btn.classList.add('active');
+                
+                // Lọc game theo category
+                const category = btn.getAttribute('data-category');
+                if (category === 'Tất cả') {
+                    renderGameList();
+                } else {
+                    const filteredGames = games.filter(game => game.category === category);
+                    renderGameList(filteredGames);
+                }
+            });
+        });
 
-            const handleCategoryToggle = (category) => {
-                setNewGame(prev => {
-                    const currentCategories = prev.category;
-                    const newCategories = currentCategories.includes(category)
-                        ? currentCategories.filter(cat => cat !== category)
-                        : [...currentCategories, category];
-                    
-                    return { ...prev, category: newCategories };
-                });
-            };
-
-            const handleDeleteGame = (gameId) => {
-                setGames(games.filter(game => game.id !== gameId));
-            };
-
-            // Login Screen
-            if (!isLoggedIn) {
-                return (
-                    <div className="container mx-auto px-4 py-8 max-w-md">
-                        <div className="bg-gray-800 rounded-lg p-6">
-                            <h2 className="text-2xl font-bold mb-4 text-white">Đăng Nhập Quản Trị</h2>
-                            <input 
-                                type="password" 
-                                value={adminPassword}
-                                onChange={(e) => setAdminPassword(e.target.value)}
-                                className="w-full px-3 py-2 mb-4 bg-gray-700 text-white rounded"
-                                placeholder="Nhập mật khẩu"
-                            />
-                            <div className="flex justify-between">
-                                <button 
-                                    onClick={handleLogin}
-                                    className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700"
-                                >
-                                    Đăng Nhập
-                                </button>
-                                <Link 
-                                    to="/" 
-                                    className="bg-gray-600 text-white px-4 py-2 rounded-full hover:bg-gray-700"
-                                >
-                                    Quay Lại
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            // Admin Panel
-            return (
-                <div className="container mx-auto px-4 py-8">
-                    <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-3xl font-bold">Quản Trị Game</h1>
-                        <Link 
-                            to="/" 
-                            className="bg-gray-600 text-white px-4 py-2 rounded-full hover:bg-gray-700"
-                        >
-                            Trang Chủ
-                        </Link>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-8">
-                        {/* Add Game Section */}
-                        <div className="bg-gray-800 rounded-lg p-6">
-                            <h2 className="text-2xl font-bold mb-4 text-white">Thêm Game Mới</h2>
-                            
-                            <div className="mb-4">
-                                <label className="block text-white mb-2">Tên Game</label>
-                                <input 
-                                    type="text" 
-                                    value={newGame.title}
-                                    onChange={(e) => setNewGame(prev => ({...prev, title: e.target.value}))}
-                                    className="w-full px-3 py-2 bg-gray-700 text-white rounded"
-                                    placeholder="Nhập tên game"
-                                />
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="block text-white mb-2">Đường dẫn Ảnh (Tùy chọn)</label>
-                                <input 
-                                    type="text" 
-                                    value={newGame.image}
-                                    onChange={(e) => setNewGame(prev => ({...prev, image: e.target.value}))}
-                                    className="w-full px-3 py-2 bg-gray-700 text-white rounded"
-                                    placeholder="Nhập URL ảnh game"
-                                />
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="block text-white mb-2">Chọn Thể Loại</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {categories.filter(cat => cat !== 'Tất cả').map((category) => (
-                                        <button
-                                            key={category}
-                                            onClick={() => handleCategoryToggle(category)}
-                                            className={`px-3 py-1 rounded-full ${
-                                                newGame.category.includes(category)
-                                                ? 'bg-purple-600 text-white' 
-                                                : 'bg-gray-700 text-gray-300'
-                                            }`}
-                                        >
-                                            {category}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <button 
-                                onClick={handleAddGame}
-                                className="w-full bg-green-600 text-white py-2 rounded-full hover:bg-green-700"
-                            >
-                                Thêm Game
-                            </button>
-                        </div>
-
-                        {/* Game List Section */}
-                        <div className="bg-gray-800 rounded-lg p-6">
-                            <h2 className="text-2xl font-bold mb-4 text-white">Danh Sách Game</h2>
-                            <div className="space-y-4">
-                                {games.map((game) => (
-                                    <div 
-                                        key={game.id} 
-                                        className="flex items-center bg-gray-700 rounded-lg p-4"
-                                    >
-                                        <img 
-                                            src={game.image} 
-                                            alt={game.title} 
-                                            className="w-16 h-16 object-cover rounded mr-4"
-                                        />
-                                        <div className="flex-grow">
-                                            <h3 className="text-lg font-bold">{game.title}</h3>
-                                            <p className="text-sm text-gray-400">
-                                                {game.category.filter(cat => cat !== 'Tất cả').join(', ')}
-                                            </p>
-                                        </div>
-                                        <button 
-                                            onClick={() => handleDeleteGame(game.id)}
-                                            className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        // Xử lý tìm kiếm game
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredGames = games.filter(game => 
+                game.name.toLowerCase().includes(searchTerm)
             );
-        };
+            renderGameList(filteredGames);
+        });
 
-        // Main App Component with Routing
-        const App = () => {
-            return (
-                <BrowserRouter>
-                    <Switch>
-                        <Route exact path="/" component={GameBrowser} />
-                        <Route path="/admin" component={AdminPanel} />
+        // Chạy khi trang web tải xong
+        document.addEventListener('DOMContentLoaded', renderGameList);
+    </script>
+</body>
+</html>
