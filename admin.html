@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Game Store (Fixed)</title>
+    <title>Admin Panel - Game Store</title>
     <style>
         :root {
             --primary-color: #6c5ce7;
@@ -39,6 +39,33 @@
             padding: 15px 0;
             text-align: center;
             margin-bottom: 20px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-name {
+            margin-right: 15px;
+        }
+
+        .logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
         .admin-form, .bulk-import-form {
@@ -204,11 +231,68 @@
             border-radius: 5px;
             font-family: monospace;
         }
+
+        /* Thêm CSS cho màn hình loading */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--darker-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .auth-message {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .user-info {
+                margin-top: 10px;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Màn hình xác thực -->
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-message">Đang kiểm tra đăng nhập...</div>
+        <div class="spinner"></div>
+    </div>
+
     <header>
-        <h1>Quản Lý Game</h1>
+        <div class="header-content">
+            <h1>Quản Lý Game</h1>
+            <div class="user-info">
+                <span class="user-name" id="username">Xin chào, Admin</span>
+                <button id="logoutBtn" class="logout-btn">Đăng xuất</button>
+            </div>
+        </div>
     </header>
 
     <div class="container">
@@ -311,6 +395,38 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script>
+        // Kiểm tra xác thực khi trang được tải
+        function checkAuth() {
+            const authData = JSON.parse(localStorage.getItem('adminAuth') || '{}');
+            
+            // Kiểm tra xem đã đăng nhập và phiên chưa hết hạn
+            if (!authData.isLoggedIn || authData.expiry <= Date.now()) {
+                // Nếu chưa đăng nhập hoặc phiên đã hết hạn, chuyển hướng đến trang đăng nhập
+                window.location.href = 'login.html';
+                return false;
+            }
+            
+            // Hiển thị tên người dùng
+            document.getElementById('username').textContent = `Xin chào, ${authData.username}`;
+            
+            // Ẩn overlay xác thực
+            document.getElementById('authOverlay').style.display = 'none';
+            
+            return true;
+        }
+        
+        // Kiểm tra xác thực khi trang tải
+        setTimeout(checkAuth, 1000); // Chậm 1 giây để hiển thị animation
+        
+        // Xử lý đăng xuất
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            // Xóa thông tin xác thực
+            localStorage.removeItem('adminAuth');
+            
+            // Chuyển hướng đến trang đăng nhập
+            window.location.href = 'login.html';
+        });
+
         // Debug function
         function debug(message, data) {
             const debugOutput = document.getElementById('debugOutput');
@@ -814,6 +930,10 @@
         // Initialize: render games list
         renderGamesList();
         debug('Page initialization complete');
+        
+        // Gán các hàm cho window để có thể gọi từ HTML
+        window.editGame = editGame;
+        window.deleteGame = deleteGame;
     </script>
 </body>
 </html>
