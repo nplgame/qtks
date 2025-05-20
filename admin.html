@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Game Store</title>
+    <title>Admin Panel - Game Store (Fixed)</title>
     <style>
         :root {
             --primary-color: #6c5ce7;
@@ -179,6 +179,31 @@
         .preview-table th {
             background-color: var(--card-bg);
         }
+
+        .status-message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .status-success {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .status-error {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .debug-area {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--card-bg);
+            border-radius: 5px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -187,6 +212,8 @@
     </header>
 
     <div class="container">
+        <div id="statusMessage" style="display: none;" class="status-message"></div>
+
         <div class="tabs">
             <div class="tab active" data-tab="single">Thêm Game Từng Cái</div>
             <div class="tab" data-tab="bulk">Thêm Game Hàng Loạt</div>
@@ -239,7 +266,6 @@
             </form>
         </div>
 
-        <!-- ĐÃ ĐƯỢC CẬP NHẬT: Phần bulk import với chức năng danh sách text -->
         <div id="bulkImportTab" class="bulk-import-form" style="display:none;">
             <div class="tabs">
                 <div class="tab active" data-bulk-tab="csv">Nhập từ CSV</div>
@@ -270,38 +296,82 @@
             <!-- Games will be dynamically listed here -->
         </div>
 
+        <div class="debug-area" id="debugArea" style="display:none;">
+            <h3>Debug Information</h3>
+            <pre id="debugOutput"></pre>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button id="toggleDebugBtn" class="btn">Hiện Thông Tin Debug</button>
+            <button id="clearStorageBtn" class="btn btn-delete">Xóa Hết Dữ Liệu</button>
+        </div>
+
         <a href="index.html" class="back-link">Quay Lại Trang Chủ</a>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script>
+        // Debug function
+        function debug(message, data) {
+            const debugOutput = document.getElementById('debugOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            const debugMessage = typeof data !== 'undefined' 
+                ? `[${timestamp}] ${message}: ${JSON.stringify(data, null, 2)}`
+                : `[${timestamp}] ${message}`;
+            
+            debugOutput.innerHTML += debugMessage + '\n\n';
+            console.log(message, data);
+        }
+
+        // Show status message
+        function showStatus(message, isError = false) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = isError ? 'status-message status-error' : 'status-message status-success';
+            statusMessage.style.display = 'block';
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 5000);
+        }
+
         // Initialize games from localStorage or use default games
-        let games = JSON.parse(localStorage.getItem('games')) || [
-            {
-                id: 1,
-                title: "The First Berserker: Khazan",
-                price: 49000,
-                image: "https://via.placeholder.com/300x150?text=Khazan",
-                categories: ["action", "rpg"]
-            },
-            {
-                id: 2,
-                title: "Black Myth: Wukong",
-                price: 49000,
-                image: "https://via.placeholder.com/300x150?text=Wukong",
-                categories: ["action", "rpg"]
-            },
-            {
-                id: 3,
-                title: "Marvel's Spider-Man 2",
-                price: 49000,
-                image: "https://via.placeholder.com/300x150?text=Spider-Man+2",
-                categories: ["action", "hot"]
-            }
-        ];
+        let games = [];
+        try {
+            const storedGames = localStorage.getItem('games');
+            games = storedGames ? JSON.parse(storedGames) : [
+                {
+                    id: 1,
+                    title: "The First Berserker: Khazan",
+                    price: 49000,
+                    image: "https://via.placeholder.com/300x150?text=Khazan",
+                    categories: ["action", "rpg"]
+                },
+                {
+                    id: 2,
+                    title: "Black Myth: Wukong",
+                    price: 49000,
+                    image: "https://via.placeholder.com/300x150?text=Wukong",
+                    categories: ["action", "rpg"]
+                },
+                {
+                    id: 3,
+                    title: "Marvel's Spider-Man 2",
+                    price: 49000,
+                    image: "https://via.placeholder.com/300x150?text=Spider-Man+2",
+                    categories: ["action", "hot"]
+                }
+            ];
+            debug('Initialized games', games);
+        } catch (error) {
+            debug('Error initializing games', error);
+            games = [];
+            showStatus('Có lỗi khi tải dữ liệu. Đã khởi tạo danh sách trống.', true);
+        }
 
         // Tab switching
-        const tabs = document.querySelectorAll('.tab');
+        const tabs = document.querySelectorAll('.tab[data-tab]');
         const singleGameTab = document.getElementById('singleGameTab');
         const bulkImportTab = document.getElementById('bulkImportTab');
 
@@ -336,15 +406,48 @@
         const csvFileInput = document.getElementById('csvFile');
         const csvPreview = document.getElementById('csvPreview');
         const importGamesBtn = document.getElementById('importGamesBtn');
+        const toggleDebugBtn = document.getElementById('toggleDebugBtn');
+        const debugArea = document.getElementById('debugArea');
+        const clearStorageBtn = document.getElementById('clearStorageBtn');
+
+        // Toggle debug panel visibility
+        toggleDebugBtn.addEventListener('click', () => {
+            if (debugArea.style.display === 'none') {
+                debugArea.style.display = 'block';
+                toggleDebugBtn.textContent = 'Ẩn Thông Tin Debug';
+            } else {
+                debugArea.style.display = 'none';
+                toggleDebugBtn.textContent = 'Hiện Thông Tin Debug';
+            }
+        });
 
         // Function to save games to localStorage
         function saveGamesToLocalStorage() {
-            localStorage.setItem('games', JSON.stringify(games));
+            try {
+                localStorage.setItem('games', JSON.stringify(games));
+                debug('Saved games to localStorage', games.length);
+                return true;
+            } catch (error) {
+                debug('Error saving to localStorage', error);
+                showStatus('Không thể lưu dữ liệu! Vui lòng kiểm tra dung lượng localStorage.', true);
+                return false;
+            }
         }
 
         // Function to render the list of games
         function renderGamesList() {
             const gamesList = document.getElementById('gamesList');
+            
+            if (games.length === 0) {
+                gamesList.innerHTML = `
+                    <h2>Danh Sách Game Hiện Tại</h2>
+                    <div class="game-item">
+                        <span>Chưa có game nào trong hệ thống.</span>
+                    </div>
+                `;
+                return;
+            }
+            
             const gamesListContent = games.map(game => `
                 <div class="game-item">
                     <span>${game.title} - ${formatPrice(game.price)} VND</span>
@@ -356,7 +459,7 @@
             `).join('');
 
             gamesList.innerHTML = `
-                <h2>Danh Sách Game Hiện Tại</h2>
+                <h2>Danh Sách Game Hiện Tại (${games.length})</h2>
                 ${gamesListContent}
             `;
         }
@@ -369,16 +472,25 @@
         // Function to delete a game
         function deleteGame(gameId) {
             if (confirm('Bạn có chắc chắn muốn xóa game này?')) {
+                debug('Deleting game', gameId);
                 games = games.filter(game => game.id !== gameId);
-                saveGamesToLocalStorage();
-                renderGamesList();
+                if (saveGamesToLocalStorage()) {
+                    renderGamesList();
+                    showStatus('Đã xóa game thành công!');
+                }
             }
         }
 
         // Function to edit a game
         function editGame(gameId) {
+            debug('Editing game', gameId);
             // Find the game to edit
             const gameToEdit = games.find(game => game.id === gameId);
+            
+            if (!gameToEdit) {
+                showStatus(`Không tìm thấy game với ID ${gameId}`, true);
+                return;
+            }
             
             // Populate form with game details
             gameIdInput.value = gameToEdit.id;
@@ -413,62 +525,109 @@
         // Event listener for form submission
         gameForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            debug('Form submitted');
 
-            // Get form values
-            const title = gameTitleInput.value;
-            const price = parseInt(gamePriceInput.value);
-            const image = gameImageInput.value || `https://via.placeholder.com/300x150?text=${encodeURIComponent(title)}`;
+            try {
+                // Get form values
+                const title = gameTitleInput.value.trim();
+                const price = parseInt(gamePriceInput.value);
+                const image = gameImageInput.value.trim() || `https://via.placeholder.com/300x150?text=${encodeURIComponent(title)}`;
 
-            // Get selected categories
-            const selectedCategories = Array.from(categoryCheckboxes)
-                .filter(cb => cb.checked)
-                .map(cb => cb.value);
+                // Validate inputs
+                if (!title) {
+                    debug('Validation error: Title empty');
+                    showStatus('Tên game không được để trống!', true);
+                    return;
+                }
 
-            // Check if we're editing an existing game or adding a new one
-            const gameId = gameIdInput.value;
-            
-            if (gameId) {
-                // Edit existing game
-                const gameIndex = games.findIndex(game => game.id === parseInt(gameId));
-                if (gameIndex !== -1) {
-                    games[gameIndex] = {
-                        id: parseInt(gameId),
+                if (isNaN(price) || price <= 0) {
+                    debug('Validation error: Invalid price', price);
+                    showStatus('Giá tiền phải là số dương!', true);
+                    return;
+                }
+
+                // Get selected categories
+                const selectedCategories = Array.from(categoryCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+
+                if (selectedCategories.length === 0) {
+                    debug('Validation error: No categories selected');
+                    showStatus('Vui lòng chọn ít nhất một thể loại!', true);
+                    return;
+                }
+
+                // Check if we're editing an existing game or adding a new one
+                const gameId = gameIdInput.value;
+                
+                if (gameId) {
+                    // Edit existing game
+                    debug('Updating existing game', gameId);
+                    const gameIndex = games.findIndex(game => game.id === parseInt(gameId));
+                    if (gameIndex !== -1) {
+                        games[gameIndex] = {
+                            id: parseInt(gameId),
+                            title,
+                            price,
+                            image,
+                            categories: selectedCategories
+                        };
+                        if (saveGamesToLocalStorage()) {
+                            showStatus('Game đã được cập nhật thành công!');
+                        }
+                    } else {
+                        debug('Error: Game not found for update', gameId);
+                        showStatus('Không tìm thấy game để cập nhật!', true);
+                    }
+                } else {
+                    // Add new game
+                    const newId = games.length > 0 ? Math.max(...games.map(g => g.id)) + 1 : 1;
+                    const newGame = {
+                        id: newId,
                         title,
                         price,
                         image,
                         categories: selectedCategories
                     };
+                    debug('Adding new game', newGame);
+                    games.push(newGame);
+                    if (saveGamesToLocalStorage()) {
+                        showStatus('Thêm game mới thành công!');
+                    }
                 }
-            } else {
-                // Add new game
-                const newGame = {
-                    id: games.length > 0 ? Math.max(...games.map(g => g.id)) + 1 : 1,
-                    title,
-                    price,
-                    image,
-                    categories: selectedCategories
-                };
-                games.push(newGame);
+
+                // Render updated games list
+                renderGamesList();
+
+                // Reset form
+                gameForm.reset();
+                gameIdInput.value = '';
+                submitBtn.textContent = 'Thêm Game';
+                cancelEditBtn.style.display = 'none';
+                gameForm.classList.remove('edit-mode');
+            } catch (error) {
+                debug('Error in form submission', error);
+                showStatus('Có lỗi xảy ra khi xử lý form!', true);
             }
-
-            // Save to localStorage
-            saveGamesToLocalStorage();
-
-            // Render updated games list
-            renderGamesList();
-
-            // Reset form
-            gameForm.reset();
-            gameIdInput.value = '';
-            submitBtn.textContent = 'Thêm Game';
-            cancelEditBtn.style.display = 'none';
-            gameForm.classList.remove('edit-mode');
         });
 
-        // Call renderGamesList to initialize the list
-        renderGamesList();
-        
-        // =========== THÊM CODE MỚI CHO CHỨC NĂNG BULK IMPORT TEXT ==========
+        // Clear storage and reset games
+        clearStorageBtn.addEventListener('click', function() {
+            if (confirm('Bạn có chắc chắn muốn xóa TẤT CẢ dữ liệu game? Hành động này không thể hoàn tác!')) {
+                try {
+                    localStorage.removeItem('games');
+                    games = [];
+                    renderGamesList();
+                    debug('All data cleared');
+                    showStatus('Đã xóa tất cả dữ liệu!');
+                } catch (error) {
+                    debug('Error clearing data', error);
+                    showStatus('Có lỗi khi xóa dữ liệu!', true);
+                }
+            }
+        });
+
+        // =========== THÊM CODE CHO CHỨC NĂNG BULK IMPORT TEXT ==========
         
         // Additional variables for bulk text import
         const bulkTabs = document.querySelectorAll('[data-bulk-tab]');
@@ -558,11 +717,13 @@
         
         // Update the existing CSV file input handler
         csvFileInput.addEventListener('change', function(e) {
+            debug('CSV file selected');
             const file = e.target.files[0];
             if (file) {
                 Papa.parse(file, {
                     header: true,
                     complete: function(results) {
+                        debug('CSV parsing complete', results);
                         parsedGames = [];
                         const validGames = results.data.filter(row => row.title && row.price);
                         
@@ -597,6 +758,10 @@
                             csvPreview.innerHTML = '<p>Không tìm thấy game hợp lệ trong file CSV.</p>';
                             importGamesBtn.style.display = 'none';
                         }
+                    },
+                    error: function(error) {
+                        debug('CSV parsing error', error);
+                        csvPreview.innerHTML = '<p class="status-error">Lỗi khi đọc file CSV: ' + error.message + '</p>';
                     }
                 });
             }
@@ -604,41 +769,51 @@
         
         // Import games button click handler
         importGamesBtn.addEventListener('click', function() {
+            debug('Import button clicked', parsedGames);
             if (parsedGames.length === 0) {
-                alert('Không có game nào để nhập.');
+                showStatus('Không có game nào để nhập.', true);
                 return;
             }
             
-            // Get the highest existing ID
-            const highestId = games.length > 0 ? Math.max(...games.map(g => g.id)) : 0;
-            
-            // Add IDs to new games and add them to the games array
-            parsedGames.forEach((game, index) => {
-                game.id = highestId + index + 1;
-                games.push(game);
-            });
-            
-            // Save to localStorage
-            saveGamesToLocalStorage();
-            
-            // Render updated games list
-            renderGamesList();
-            
-            // Reset preview and form
-            if (currentBulkMode === 'csv') {
-                csvFileInput.value = '';
-                csvPreview.innerHTML = '';
-            } else {
-                gamesListInput.value = '';
-                textPreview.innerHTML = '';
+            try {
+                // Get the highest existing ID
+                const highestId = games.length > 0 ? Math.max(...games.map(g => g.id)) : 0;
+                
+                // Add IDs to new games and add them to the games array
+                parsedGames.forEach((game, index) => {
+                    game.id = highestId + index + 1;
+                    games.push(game);
+                });
+                
+                // Save to localStorage
+                if (saveGamesToLocalStorage()) {
+                    // Render updated games list
+                    renderGamesList();
+                    
+                    // Reset preview and form
+                    if (currentBulkMode === 'csv') {
+                        csvFileInput.value = '';
+                        csvPreview.innerHTML = '';
+                    } else {
+                        gamesListInput.value = '';
+                        textPreview.innerHTML = '';
+                    }
+                    
+                    importGamesBtn.style.display = 'none';
+                    
+                    // Show success message
+                    showStatus(`Đã thêm thành công ${parsedGames.length} game.`);
+                    parsedGames = [];
+                }
+            } catch (error) {
+                debug('Error importing games', error);
+                showStatus('Có lỗi khi nhập game.', true);
             }
-            
-            importGamesBtn.style.display = 'none';
-            
-            // Show success message
-            alert(`Đã thêm thành công ${parsedGames.length} game.`);
-            parsedGames = [];
         });
+
+        // Initialize: render games list
+        renderGamesList();
+        debug('Page initialization complete');
     </script>
 </body>
 </html>
