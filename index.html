@@ -1,428 +1,330 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Plus, Filter, Calendar, Users, DollarSign } from 'lucide-react';
-
-// Mock data for room status
-const initialRooms = {
-  2: [
-    { id: 'P201', name: 'P201', type: 'Đôi 2 giường', status: 'empty', priceNormal: 450000, priceWeekend: 550000, priceDiscount: 350000 },
-    { id: 'P202', name: 'P202', type: 'phòng thường', status: 'unavailable', priceNormal: 350000, priceWeekend: 450000, priceDiscount: 250000 },
-    { id: 'P203', name: 'P203', type: 'phòng thường', status: 'empty', priceNormal: 350000, priceWeekend: 450000, priceDiscount: 250000 },
-    { id: 'P204', name: 'P204', type: 'Tiêu chuẩn', status: 'unavailable', priceNormal: 350000, priceWeekend: 450000, priceDiscount: 250000 },
-  ],
-  3: [
-    { id: 'P301', name: 'P301', type: 'Đôi 2 giường', status: 'empty', priceNormal: 450000, priceWeekend: 550000, priceDiscount: 350000 },
-    { id: 'P302', name: 'P302', type: 'phòng thường', status: 'empty', priceNormal: 350000, priceWeekend: 450000, priceDiscount: 250000 },
-    { id: 'P303', name: 'P303', type: 'phòng thường', status: 'empty', priceNormal: 350000, priceWeekend: 450000, priceDiscount: 250000 },
-    { id: 'P304', name: 'P304', type: 'Tiêu chuẩn', status: 'empty', priceNormal: 350000, priceWeekend: 450000, priceDiscount: 250000 },
-  ],
-  4: [
-    { id: 'P401', name: 'P401', type: 'Đôi 2 giường', status: 'empty', priceNormal: 450000, priceWeekend: 550000, priceDiscount: 350000 },
-    { id: 'P402', name: 'P402', type: 'phòng thường', status: 'unavailable', priceNormal: 350000, priceWeekend: 450000, priceDiscount: 250000 },
-    { id: 'P403', name: 'P403', type: 'Khách lẻ', status: 'occupied', priceNormal: 350000, priceWeekend: 450000, priceDiscount: 250000, guestInfo: { checkIn: '1 ngày 5 giờ', checkOut: '1 ngày 5 giờ' } },
-    { id: 'P404', name: 'P404', type: 'Khách lẻ', status: 'occupied', priceNormal: 350000, priceWeekend: 450000, priceDiscount: 250000, guestInfo: { checkIn: '1 ngày 2 giờ', checkOut: '1 ngày 2 giờ' } },
-  ],
-  5: [
-    { id: 'P501', name: 'P501', type: 'Đôi 2 giường', status: 'empty', priceNormal: 450000, priceWeekend: 550000, priceDiscount: 350000 },
-    { id: 'P502', name: 'P502', type: 'phòng thường', status: 'empty', priceNormal: 350000, priceWeekend: 450000, priceDiscount: 250000 },
-    { id: 'P503', name: 'P503', type: 'Khách lẻ', status: 'occupied', priceNormal: 350000, priceWeekend: 450000, priceDiscount: 250000 },
-    { id: 'P504', name: 'P504', type: 'Khách lẻ', status: 'empty', priceNormal: 350000, priceWeekend: 450000, priceDiscount: 250000 },
-  ],
-};
-
-// Room status counts
-const initialStatusCounts = {
-  empty: 15,
-  pending: 0,
-  occupied: 6,
-  checkout: 1,
-  overdue: 1
-};
-
-const HotelManagement = () => {
-  const [rooms, setRooms] = useState(initialRooms);
-  const [statusCounts, setStatusCounts] = useState(initialStatusCounts);
-  const [selectedStatus, setSelectedStatus] = useState('all');
-  const [bookingModalOpen, setBookingModalOpen] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // Form state for booking
-  const [guestName, setGuestName] = useState('');
-  const [guestPhone, setGuestPhone] = useState('');
-  const [checkInDate, setCheckInDate] = useState('');
-  const [checkOutDate, setCheckOutDate] = useState('');
-
-  // Filter rooms based on selected status
-  const filteredRooms = {};
-  Object.keys(rooms).forEach(floor => {
-    filteredRooms[floor] = rooms[floor].filter(room => {
-      if (selectedStatus === 'all') return true;
-      return room.status === selectedStatus;
-    }).filter(room => {
-      if (!searchQuery) return true;
-      return room.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-             room.type.toLowerCase().includes(searchQuery.toLowerCase());
-    });
-  });
-
-  // Handle room click
-  const handleRoomClick = (room) => {
-    setSelectedRoom(room);
-    setBookingModalOpen(true);
-    // Reset form fields
-    setGuestName('');
-    setGuestPhone('');
-    setCheckInDate('');
-    setCheckOutDate('');
-  };
-
-  // Handle booking
-  const handleBookRoom = () => {
-    if (!selectedRoom) return;
-    
-    const guestInfo = {
-      name: guestName,
-      phone: guestPhone,
-      checkIn: '1 ngày 2 giờ',
-      checkOut: '1 ngày 2 giờ'
-    };
-    
-    const updatedRooms = {...rooms};
-    
-    Object.keys(updatedRooms).forEach(floor => {
-      updatedRooms[floor] = updatedRooms[floor].map(room => {
-        if (room.id === selectedRoom.id) {
-          return {
-            ...room,
-            status: 'occupied',
-            guestInfo
-          };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Browser</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@5.2.0/umd/react-router-dom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6/babel.min.js"></script>
+    <style>
+        body {
+            background-color: #1e293b;
+            color: white;
         }
-        return room;
-      });
-    });
-    
-    setRooms(updatedRooms);
-    setBookingModalOpen(false);
-    
-    // Update status counts
-    const newStatusCounts = {...statusCounts};
-    newStatusCounts.empty--;
-    newStatusCounts.occupied++;
-    setStatusCounts(newStatusCounts);
-  };
-
-  // Handle checkout
-  const handleCheckout = () => {
-    if (!selectedRoom) return;
-    
-    const updatedRooms = {...rooms};
-    
-    Object.keys(updatedRooms).forEach(floor => {
-      updatedRooms[floor] = updatedRooms[floor].map(room => {
-        if (room.id === selectedRoom.id) {
-          return {
-            ...room,
-            status: 'empty',
-            guestInfo: null
-          };
+        .game-card {
+            transition: transform 0.3s ease;
         }
-        return room;
-      });
-    });
-    
-    setRooms(updatedRooms);
-    setBookingModalOpen(false);
-    
-    // Update status counts
-    const newStatusCounts = {...statusCounts};
-    newStatusCounts.occupied--;
-    newStatusCounts.empty++;
-    setStatusCounts(newStatusCounts);
-  };
+        .game-card:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-  return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-green-600 text-white p-4 flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <span className="text-xl font-bold">Quản lý Khách sạn</span>
-        </div>
-        <div className="flex items-center space-x-4">
-          <span>Bảng giá Niêm yết ▼</span>
-          <button className="bg-white text-green-600 px-4 py-2 rounded-md flex items-center">
-            <Plus size={18} className="mr-1" />
-            Đặt phòng
-          </button>
-        </div>
-      </header>
+    <script type="text/babel">
+        const { BrowserRouter, Route, Switch, Link } = ReactRouterDOM;
 
-      {/* Search Bar */}
-      <div className="bg-white p-4 flex justify-between items-center border-b">
-        <div className="flex">
-          <button className="p-2 border rounded-l border-gray-300">
-            <Search size={20} className="text-gray-500" />
-          </button>
-          <input
-            type="text"
-            placeholder="Tìm kiếm khách hàng, mã đặt phòng..."
-            className="p-2 border-t border-b border-r border-gray-300 w-96"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="flex space-x-2">
-          <button className="border border-gray-300 p-2 rounded">
-            <Filter size={20} className="text-gray-500" />
-          </button>
-          <button className="border border-gray-300 p-2 rounded">
-            <img src="/api/placeholder/20/20" alt="table view" />
-          </button>
-        </div>
-      </div>
+        // Initial Games Data
+        const initialGames = [
+            {
+                id: 1,
+                title: "Baldur's Gate 3",
+                image: "/api/placeholder/300/200?text=Baldur's+Gate+3",
+                category: ['Tất cả', 'Nhập vai']
+            },
+            {
+                id: 2,
+                title: "Assassin's Creed Shadows",
+                image: "/api/placeholder/300/200?text=Assassin's+Creed+Shadows",
+                category: ['Tất cả', 'Hành động']
+            },
+            {
+                id: 3,
+                title: "The Elder Scrolls IV: Oblivion",
+                image: "/api/placeholder/300/200?text=Elder+Scrolls+Oblivion",
+                category: ['Tất cả', 'Nhập vai']
+            }
+        ];
 
-      {/* Status Filter */}
-      <div className="bg-white p-4 flex space-x-4 border-b">
-        <button 
-          className={`flex items-center space-x-2 px-3 py-1 rounded-full ${selectedStatus === 'all' ? 'bg-blue-100 text-blue-800' : 'text-gray-500'}`}
-          onClick={() => setSelectedStatus('all')}
-        >
-          <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-          <span>Tất cả</span>
-        </button>
-        <button 
-          className={`flex items-center space-x-2 px-3 py-1 rounded-full ${selectedStatus === 'empty' ? 'bg-gray-100 text-gray-800' : 'text-gray-500'}`}
-          onClick={() => setSelectedStatus('empty')}
-        >
-          <span className="w-3 h-3 rounded-full bg-gray-500"></span>
-          <span>Đang trống ({statusCounts.empty})</span>
-        </button>
-        <button 
-          className={`flex items-center space-x-2 px-3 py-1 rounded-full ${selectedStatus === 'pending' ? 'bg-orange-100 text-orange-800' : 'text-gray-500'}`}
-          onClick={() => setSelectedStatus('pending')}
-        >
-          <span className="w-3 h-3 rounded-full bg-orange-500"></span>
-          <span>Sắp nhận ({statusCounts.pending})</span>
-        </button>
-        <button 
-          className={`flex items-center space-x-2 px-3 py-1 rounded-full ${selectedStatus === 'occupied' ? 'bg-green-100 text-green-800' : 'text-gray-500'}`}
-          onClick={() => setSelectedStatus('occupied')}
-        >
-          <span className="w-3 h-3 rounded-full bg-green-500"></span>
-          <span>Đang sử dụng ({statusCounts.occupied})</span>
-        </button>
-        <button 
-          className={`flex items-center space-x-2 px-3 py-1 rounded-full ${selectedStatus === 'checkout' ? 'bg-purple-100 text-purple-800' : 'text-gray-500'}`}
-          onClick={() => setSelectedStatus('checkout')}
-        >
-          <span className="w-3 h-3 rounded-full bg-purple-500"></span>
-          <span>Sắp trả ({statusCounts.checkout})</span>
-        </button>
-        <button 
-          className={`flex items-center space-x-2 px-3 py-1 rounded-full ${selectedStatus === 'overdue' ? 'bg-red-100 text-red-800' : 'text-gray-500'}`}
-          onClick={() => setSelectedStatus('overdue')}
-        >
-          <span className="w-3 h-3 rounded-full bg-red-500"></span>
-          <span>Quá giờ trả ({statusCounts.overdue})</span>
-        </button>
-      </div>
+        // Home/Index Page Component
+        const GameBrowser = () => {
+            const [activeCategory, setActiveCategory] = React.useState('Tất cả');
+            const [games] = React.useState(initialGames);
 
-      {/* Room Grid */}
-      <div className="flex-1 overflow-auto p-4">
-        {Object.keys(filteredRooms).map(floor => (
-          <div key={floor} className="mb-8">
-            <h2 className="text-lg font-semibold mb-4">Tầng {floor} ({filteredRooms[floor].length})</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {filteredRooms[floor].map(room => (
-                <div 
-                  key={room.id} 
-                  className={`border rounded-md overflow-hidden cursor-pointer transform transition hover:scale-105 ${
-                    room.status === 'empty' ? 'bg-white' : 
-                    room.status === 'occupied' ? 'bg-green-500' : 
-                    room.status === 'unavailable' ? 'bg-white' : ''
-                  }`}
-                  onClick={() => handleRoomClick(room)}
-                >
-                  <div className="flex justify-between items-center p-3 border-b">
-                    <div className="flex items-center">
-                      {room.status === 'empty' && <span className="w-3 h-3 rounded-full bg-gray-400 mr-2"></span>}
-                      {room.status === 'occupied' && <span className="w-3 h-3 rounded-full bg-white mr-2"></span>}
-                      {room.status === 'unavailable' && <span className="w-3 h-3 rounded-full bg-red-500 mr-2"></span>}
-                      <span className={`font-semibold ${room.status === 'occupied' ? 'text-white' : ''}`}>{room.name}</span>
+            const categories = [
+                'Tất cả', 'Game Hot', 'Hành động', 'Nhập vai', 'Chiến thuật', 'Thể thao', 'Thể loại khác'
+            ];
+
+            return (
+                <div className="container mx-auto px-4 py-8">
+                    <div className="flex justify-between items-center mb-6">
+                        <h1 className="text-3xl font-bold">Game Browser</h1>
+                        <Link 
+                            to="/admin" 
+                            className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700"
+                        >
+                            Đăng nhập Quản trị
+                        </Link>
                     </div>
-                    <div className="flex">
-                      {room.status === 'empty' && (
-                        <button className="text-gray-600">
-                          <span className="sr-only">Options</span>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                          </svg>
-                        </button>
-                      )}
-                      {room.status === 'occupied' && (
-                        <button className="text-white">
-                          <span className="sr-only">Options</span>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                          </svg>
-                        </button>
-                      )}
-                      {room.status === 'unavailable' && (
-                        <div className="bg-red-100 text-red-800 px-2 py-1 text-xs rounded-full">
-                          Chưa dọn
+
+                    <div className="search-bar mb-6">
+                        <input 
+                            type="text" 
+                            placeholder="Tìm kiếm game..."
+                            className="w-full px-4 py-2 rounded-full bg-gray-700 text-white"
+                        />
+                    </div>
+
+                    <div className="category-filter flex space-x-2 mb-6 overflow-x-auto">
+                        {categories.map((category) => (
+                            <button
+                                key={category}
+                                className={`px-4 py-2 rounded-full ${
+                                    activeCategory === category 
+                                    ? 'bg-purple-600 text-white' 
+                                    : 'bg-gray-700 text-gray-300'
+                                }`}
+                                onClick={() => setActiveCategory(category)}
+                            >
+                                {category}
+                            </button>
+                        ))}
+                        <div className="ml-auto">
+                            <button className="px-4 py-2 bg-gray-700 rounded-full flex items-center">
+                                Áp dụng lọc giá
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                            </button>
                         </div>
-                      )}
                     </div>
-                  </div>
-                  <div className={`p-3 ${room.status === 'occupied' ? 'text-white' : ''}`}>
-                    <p className="font-medium">{room.type}</p>
-                    <div className="mt-2">
-                      {room.status !== 'occupied' ? (
-                        <>
-                          <div className="flex items-center text-sm">
-                            <DollarSign size={14} className={room.status === 'occupied' ? 'text-white' : 'text-blue-500'} />
-                            <span>{room.priceNormal.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center text-sm mt-1">
-                            <DollarSign size={14} className={room.status === 'occupied' ? 'text-white' : 'text-gray-500'} />
-                            <span>{room.priceWeekend.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center text-sm mt-1">
-                            <DollarSign size={14} className={room.status === 'occupied' ? 'text-white' : 'text-gray-500'} />
-                            <span>{room.priceDiscount.toLocaleString()}</span>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          {room.guestInfo && (
-                            <div className="bg-green-600 text-white p-2 rounded mt-2">
-                              <div className="flex items-center text-sm">
-                                <Calendar size={14} className="mr-1" />
-                                <span>{room.guestInfo.checkIn}</span>
-                              </div>
-                              <div className="flex items-center text-sm mt-1">
-                                <Calendar size={14} className="mr-1" />
-                                <span>{room.guestInfo.checkOut}</span>
-                              </div>
+
+                    <div className="game-grid grid grid-cols-3 gap-6">
+                        {games
+                            .filter(game => game.category.includes(activeCategory))
+                            .map((game) => (
+                            <div 
+                                key={game.title} 
+                                className="game-card bg-gray-800 rounded-lg overflow-hidden shadow-lg cursor-pointer"
+                            >
+                                <img 
+                                    src={game.image} 
+                                    alt={game.title} 
+                                    className="w-full h-64 object-cover"
+                                />
+                                <div className="p-4">
+                                    <h3 className="text-lg font-bold">{game.title}</h3>
+                                </div>
                             </div>
-                          )}
-                        </>
-                      )}
+                        ))}
                     </div>
-                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+        };
 
-      {/* Booking Modal */}
-      {bookingModalOpen && selectedRoom && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg w-full max-w-md">
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">
-                {selectedRoom.status === 'empty' ? 'Đặt phòng' : 'Thông tin phòng'} {selectedRoom.name}
-              </h2>
-              
-              {selectedRoom.status === 'empty' ? (
-                <div>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
-                      Tên khách hàng
-                    </label>
-                    <input 
-                      type="text" 
-                      className="w-full p-2 border border-gray-300 rounded"
-                      value={guestName}
-                      onChange={(e) => setGuestName(e.target.value)}
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
-                      Số điện thoại
-                    </label>
-                    <input 
-                      type="text" 
-                      className="w-full p-2 border border-gray-300 rounded"
-                      value={guestPhone}
-                      onChange={(e) => setGuestPhone(e.target.value)}
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
-                      Ngày nhận phòng
-                    </label>
-                    <input 
-                      type="date" 
-                      className="w-full p-2 border border-gray-300 rounded"
-                      value={checkInDate}
-                      onChange={(e) => setCheckInDate(e.target.value)}
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
-                      Ngày trả phòng
-                    </label>
-                    <input 
-                      type="date" 
-                      className="w-full p-2 border border-gray-300 rounded"
-                      value={checkOutDate}
-                      onChange={(e) => setCheckOutDate(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <button
-                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700"
-                      onClick={() => setBookingModalOpen(false)}
-                    >
-                      Hủy
-                    </button>
-                    <button
-                      className="px-4 py-2 bg-green-600 text-white rounded-md"
-                      onClick={handleBookRoom}
-                    >
-                      Đặt phòng
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  {selectedRoom.guestInfo && (
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-sm text-gray-500">Thời gian check-in</p>
-                        <p className="font-medium">{selectedRoom.guestInfo.checkIn}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Thời gian check-out</p>
-                        <p className="font-medium">{selectedRoom.guestInfo.checkOut}</p>
-                      </div>
-                      <div className="pt-4 flex justify-end space-x-2">
-                        <button
-                          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700"
-                          onClick={() => setBookingModalOpen(false)}
-                        >
-                          Đóng
-                        </button>
-                        <button
-                          className="px-4 py-2 bg-red-600 text-white rounded-md"
-                          onClick={handleCheckout}
-                        >
-                          Trả phòng
-                        </button>
-                      </div>
+        // Admin Page Component
+        const AdminPanel = () => {
+            const [games, setGames] = React.useState(initialGames);
+            const [newGame, setNewGame] = React.useState({
+                title: '',
+                image: '',
+                category: []
+            });
+            const [adminPassword, setAdminPassword] = React.useState('');
+            const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+
+            const categories = [
+                'Tất cả', 'Game Hot', 'Hành động', 'Nhập vai', 'Chiến thuật', 'Thể thao', 'Thể loại khác'
+            ];
+
+            const handleLogin = () => {
+                // Simple admin password check (in a real app, use proper authentication)
+                if (adminPassword === 'admin123') {
+                    setIsLoggedIn(true);
+                } else {
+                    alert('Mật khẩu không đúng');
+                }
+            };
+
+            const handleAddGame = () => {
+                // Validate input
+                if (!newGame.title || newGame.category.length === 0) {
+                    alert('Vui lòng nhập đầy đủ thông tin');
+                    return;
+                }
+
+                // Add new game
+                const gameToAdd = {
+                    ...newGame,
+                    id: games.length + 1,
+                    image: newGame.image || `/api/placeholder/300/200?text=${encodeURIComponent(newGame.title)}`
+                };
+
+                setGames([...games, gameToAdd]);
+                
+                // Reset form
+                setNewGame({ title: '', image: '', category: [] });
+            };
+
+            const handleCategoryToggle = (category) => {
+                setNewGame(prev => {
+                    const currentCategories = prev.category;
+                    const newCategories = currentCategories.includes(category)
+                        ? currentCategories.filter(cat => cat !== category)
+                        : [...currentCategories, category];
+                    
+                    return { ...prev, category: newCategories };
+                });
+            };
+
+            const handleDeleteGame = (gameId) => {
+                setGames(games.filter(game => game.id !== gameId));
+            };
+
+            // Login Screen
+            if (!isLoggedIn) {
+                return (
+                    <div className="container mx-auto px-4 py-8 max-w-md">
+                        <div className="bg-gray-800 rounded-lg p-6">
+                            <h2 className="text-2xl font-bold mb-4 text-white">Đăng Nhập Quản Trị</h2>
+                            <input 
+                                type="password" 
+                                value={adminPassword}
+                                onChange={(e) => setAdminPassword(e.target.value)}
+                                className="w-full px-3 py-2 mb-4 bg-gray-700 text-white rounded"
+                                placeholder="Nhập mật khẩu"
+                            />
+                            <div className="flex justify-between">
+                                <button 
+                                    onClick={handleLogin}
+                                    className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700"
+                                >
+                                    Đăng Nhập
+                                </button>
+                                <Link 
+                                    to="/" 
+                                    className="bg-gray-600 text-white px-4 py-2 rounded-full hover:bg-gray-700"
+                                >
+                                    Quay Lại
+                                </Link>
+                            </div>
+                        </div>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+                );
+            }
 
-export default HotelManagement;
+            // Admin Panel
+            return (
+                <div className="container mx-auto px-4 py-8">
+                    <div className="flex justify-between items-center mb-6">
+                        <h1 className="text-3xl font-bold">Quản Trị Game</h1>
+                        <Link 
+                            to="/" 
+                            className="bg-gray-600 text-white px-4 py-2 rounded-full hover:bg-gray-700"
+                        >
+                            Trang Chủ
+                        </Link>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                        {/* Add Game Section */}
+                        <div className="bg-gray-800 rounded-lg p-6">
+                            <h2 className="text-2xl font-bold mb-4 text-white">Thêm Game Mới</h2>
+                            
+                            <div className="mb-4">
+                                <label className="block text-white mb-2">Tên Game</label>
+                                <input 
+                                    type="text" 
+                                    value={newGame.title}
+                                    onChange={(e) => setNewGame(prev => ({...prev, title: e.target.value}))}
+                                    className="w-full px-3 py-2 bg-gray-700 text-white rounded"
+                                    placeholder="Nhập tên game"
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-white mb-2">Đường dẫn Ảnh (Tùy chọn)</label>
+                                <input 
+                                    type="text" 
+                                    value={newGame.image}
+                                    onChange={(e) => setNewGame(prev => ({...prev, image: e.target.value}))}
+                                    className="w-full px-3 py-2 bg-gray-700 text-white rounded"
+                                    placeholder="Nhập URL ảnh game"
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-white mb-2">Chọn Thể Loại</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {categories.filter(cat => cat !== 'Tất cả').map((category) => (
+                                        <button
+                                            key={category}
+                                            onClick={() => handleCategoryToggle(category)}
+                                            className={`px-3 py-1 rounded-full ${
+                                                newGame.category.includes(category)
+                                                ? 'bg-purple-600 text-white' 
+                                                : 'bg-gray-700 text-gray-300'
+                                            }`}
+                                        >
+                                            {category}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={handleAddGame}
+                                className="w-full bg-green-600 text-white py-2 rounded-full hover:bg-green-700"
+                            >
+                                Thêm Game
+                            </button>
+                        </div>
+
+                        {/* Game List Section */}
+                        <div className="bg-gray-800 rounded-lg p-6">
+                            <h2 className="text-2xl font-bold mb-4 text-white">Danh Sách Game</h2>
+                            <div className="space-y-4">
+                                {games.map((game) => (
+                                    <div 
+                                        key={game.id} 
+                                        className="flex items-center bg-gray-700 rounded-lg p-4"
+                                    >
+                                        <img 
+                                            src={game.image} 
+                                            alt={game.title} 
+                                            className="w-16 h-16 object-cover rounded mr-4"
+                                        />
+                                        <div className="flex-grow">
+                                            <h3 className="text-lg font-bold">{game.title}</h3>
+                                            <p className="text-sm text-gray-400">
+                                                {game.category.filter(cat => cat !== 'Tất cả').join(', ')}
+                                            </p>
+                                        </div>
+                                        <button 
+                                            onClick={() => handleDeleteGame(game.id)}
+                                            className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Main App Component with Routing
+        const App = () => {
+            return (
+                <BrowserRouter>
+                    <Switch>
+                        <Route exact path="/" component={GameBrowser} />
+                        <Route path="/admin" component={AdminPanel} />
