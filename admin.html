@@ -3,85 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Game</title>
+    <title>Admin Panel - Game Store</title>
     <style>
         :root {
-            --bg-dark: #121212;
-            --bg-card: #1E1E1E;
-            --text-light: #FFFFFF;
-            --accent-purple: #6D28D9;
+            --primary-color: #6c5ce7;
+            --secondary-color: #a29bfe;
+            --dark-bg: #1e293b;
+            --darker-bg: #0f172a;
+            --text-light: #f1f5f9;
+            --card-bg: #2d3748;
+            --price-color: #a855f7;
         }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: var(--bg-dark);
+            background-color: var(--darker-bg);
             color: var(--text-light);
             line-height: 1.6;
         }
-        .back-link {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: var(--accent-purple);
-            color: var(--text-light);
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            z-index: 1000;
-        }
+
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
         }
+
+        header {
+            background-color: var(--dark-bg);
+            padding: 15px 0;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .admin-form, .bulk-import-form {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         .form-group label {
             display: block;
             margin-bottom: 5px;
         }
-        .form-group input, 
-        .form-group select, 
-        .form-group textarea {
+
+        .form-control {
             width: 100%;
             padding: 10px;
-            background-color: var(--bg-card);
-            border: 1px solid #333;
-            color: var(--text-light);
             border-radius: 5px;
+            border: none;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
         }
+
         .btn {
             display: inline-block;
-            background-color: var(--accent-purple);
-            color: var(--text-light);
             padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
             margin-right: 10px;
         }
+
         .btn:hover {
-            background-color: #5B21B6;
+            background-color: var(--secondary-color);
         }
-        .btn-edit {
-            background-color: #ffc107;
-            color: #000;
-        }
+
         .btn-delete {
-            background-color: #dc3545;
-            color: white;
+            background-color: #e74c3c;
         }
-        #gameList {
+
+        .btn-edit {
+            background-color: #f39c12;
+        }
+
+        .btn-import {
+            background-color: #27ae60;
+        }
+
+        .category-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .category-checkboxes label {
+            display: flex;
+            align-items: center;
+            background-color: var(--dark-bg);
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+
+        .category-checkboxes input {
+            margin-right: 5px;
+        }
+
+        .games-list {
             margin-top: 30px;
         }
+
         .game-item {
-            background-color: var(--bg-card);
+            background-color: var(--card-bg);
             padding: 15px;
             margin-bottom: 10px;
             border-radius: 5px;
@@ -89,172 +126,519 @@
             justify-content: space-between;
             align-items: center;
         }
-        .game-item-actions {
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .edit-mode {
+            background-color: #2c3e50;
+        }
+
+        .tabs {
             display: flex;
-            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background-color: var(--dark-bg);
+            cursor: pointer;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .tab.active {
+            background-color: var(--card-bg);
+        }
+
+        #csvPreview, #textPreview {
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: var(--dark-bg);
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .preview-table th, .preview-table td {
+            border: 1px solid var(--card-bg);
+            padding: 8px;
+            text-align: left;
+        }
+
+        .preview-table th {
+            background-color: var(--card-bg);
         }
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-link">Về Trang Chủ</a>
+    <header>
+        <h1>Quản Lý Game</h1>
+    </header>
 
     <div class="container">
-        <h1>Quản Lý Game</h1>
-        
-        <form id="gameForm">
-            <input type="hidden" id="gameIndex" value="-1">
-            
-            <div class="form-group">
-                <label for="gameName">Tên Game</label>
-                <input type="text" id="gameName" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="gameImage">Link Ảnh Game</label>
-                <input type="text" id="gameImage" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="gameDownloadLink">Link Tải Game</label>
-                <input type="text" id="gameDownloadLink" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="gameCategory">Thể Loại</label>
-                <select id="gameCategory">
-                    <option value="Tất cả">Tất cả</option>
-                    <option value="Game Hot">Game Hot</option>
-                    <option value="Hành động">Hành động</option>
-                    <option value="Nhập vai">Nhập vai</option>
-                    <option value="Chiến thuật">Chiến thuật</option>
-                    <option value="Thể thao">Thể thao</option>
-                    <option value="Khác">Thể loại khác</option>
-                </select>
-            </div>
-            
-            <button type="submit" class="btn" id="submitBtn">Thêm Game</button>
-            <button type="button" class="btn" id="cancelBtn" style="display:none;">Hủy</button>
-        </form>
-
-        <div id="gameList">
-            <h2>Danh Sách Game</h2>
+        <div class="tabs">
+            <div class="tab active" data-tab="single">Thêm Game Từng Cái</div>
+            <div class="tab" data-tab="bulk">Thêm Game Hàng Loạt</div>
         </div>
+
+        <div id="singleGameTab" class="admin-form">
+            <form id="gameForm">
+                <input type="hidden" id="gameId" value="">
+                <div class="form-group">
+                    <label for="gameTitle">Tên Game</label>
+                    <input type="text" id="gameTitle" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="gamePrice">Giá (VND)</label>
+                    <input type="number" id="gamePrice" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Thể Loại</label>
+                    <div class="category-checkboxes">
+                        <label>
+                            <input type="checkbox" name="categories" value="action"> Hành Động
+                        </label>
+                        <label>
+                            <input type="checkbox" name="categories" value="rpg"> Nhập Vai
+                        </label>
+                        <label>
+                            <input type="checkbox" name="categories" value="strategy"> Chiến Thuật
+                        </label>
+                        <label>
+                            <input type="checkbox" name="categories" value="sport"> Thể Thao
+                        </label>
+                        <label>
+                            <input type="checkbox" name="categories" value="hot"> Game Hot
+                        </label>
+                        <label>
+                            <input type="checkbox" name="categories" value="other"> Khác
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="gameImage">Đường Dẫn Ảnh</label>
+                    <input type="text" id="gameImage" class="form-control" placeholder="https://example.com/image.jpg">
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">Thêm Game</button>
+                <button type="button" class="btn" id="cancelEditBtn" style="display:none;">Hủy Chỉnh Sửa</button>
+            </form>
+        </div>
+
+        <!-- ĐÃ ĐƯỢC CẬP NHẬT: Phần bulk import với chức năng danh sách text -->
+        <div id="bulkImportTab" class="bulk-import-form" style="display:none;">
+            <div class="tabs">
+                <div class="tab active" data-bulk-tab="csv">Nhập từ CSV</div>
+                <div class="tab" data-bulk-tab="text">Nhập từ Text</div>
+            </div>
+            
+            <div id="csvImportSection">
+                <div class="form-group">
+                    <label for="csvFile">Tải Lên File CSV</label>
+                    <input type="file" id="csvFile" class="form-control" accept=".csv">
+                </div>
+                <div id="csvPreview"></div>
+            </div>
+            
+            <div id="textImportSection" style="display:none;">
+                <div class="form-group">
+                    <label for="gamesList">Danh sách game (mỗi dòng: tên game|giá tiền|link hình ảnh)</label>
+                    <textarea id="gamesListInput" class="form-control" rows="8" placeholder="The First Berserker: Khazan|49000|https://example.com/image.jpg"></textarea>
+                </div>
+                <div id="textPreview"></div>
+            </div>
+            
+            <button id="importGamesBtn" class="btn btn-import" style="display:none;">Nhập Game Hàng Loạt</button>
+        </div>
+
+        <div class="games-list" id="gamesList">
+            <h2>Danh Sách Game Hiện Tại</h2>
+            <!-- Games will be dynamically listed here -->
+        </div>
+
+        <a href="index.html" class="back-link">Quay Lại Trang Chủ</a>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script>
-        // Khởi tạo danh sách game từ localStorage
-        let games = JSON.parse(localStorage.getItem('games')) || [];
+        // Initialize games from localStorage or use default games
+        let games = JSON.parse(localStorage.getItem('games')) || [
+            {
+                id: 1,
+                title: "The First Berserker: Khazan",
+                price: 49000,
+                image: "https://via.placeholder.com/300x150?text=Khazan",
+                categories: ["action", "rpg"]
+            },
+            {
+                id: 2,
+                title: "Black Myth: Wukong",
+                price: 49000,
+                image: "https://via.placeholder.com/300x150?text=Wukong",
+                categories: ["action", "rpg"]
+            },
+            {
+                id: 3,
+                title: "Marvel's Spider-Man 2",
+                price: 49000,
+                image: "https://via.placeholder.com/300x150?text=Spider-Man+2",
+                categories: ["action", "hot"]
+            }
+        ];
+
+        // Tab switching
+        const tabs = document.querySelectorAll('.tab');
+        const singleGameTab = document.getElementById('singleGameTab');
+        const bulkImportTab = document.getElementById('bulkImportTab');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Show/hide corresponding tab content
+                if (tab.dataset.tab === 'single') {
+                    singleGameTab.style.display = 'block';
+                    bulkImportTab.style.display = 'none';
+                } else {
+                    singleGameTab.style.display = 'none';
+                    bulkImportTab.style.display = 'block';
+                }
+            });
+        });
 
         // DOM Elements
         const gameForm = document.getElementById('gameForm');
-        const gameNameInput = document.getElementById('gameName');
+        const gameIdInput = document.getElementById('gameId');
+        const gameTitleInput = document.getElementById('gameTitle');
+        const gamePriceInput = document.getElementById('gamePrice');
         const gameImageInput = document.getElementById('gameImage');
-        const gameDownloadLinkInput = document.getElementById('gameDownloadLink');
-        const gameCategoryInput = document.getElementById('gameCategory');
-        const gameIndexInput = document.getElementById('gameIndex');
         const submitBtn = document.getElementById('submitBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const gameListContainer = document.getElementById('gameList');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const categoryCheckboxes = document.querySelectorAll('input[name="categories"]');
+        const csvFileInput = document.getElementById('csvFile');
+        const csvPreview = document.getElementById('csvPreview');
+        const importGamesBtn = document.getElementById('importGamesBtn');
 
-        // Render danh sách game
-        function renderGameList() {
-            // Xóa danh sách cũ
-            const existingList = gameListContainer.querySelector('div');
-            if (existingList) {
-                existingList.remove();
-            }
+        // Function to save games to localStorage
+        function saveGamesToLocalStorage() {
+            localStorage.setItem('games', JSON.stringify(games));
+        }
 
-            // Tạo danh sách mới
-            const listContainer = document.createElement('div');
-            
-            games.forEach((game, index) => {
-                const gameItem = document.createElement('div');
-                gameItem.classList.add('game-item');
-                gameItem.innerHTML = `
-                    <span>${game.name} (${game.category})</span>
-                    <div class="game-item-actions">
-                        <button onclick="editGame(${index})" class="btn btn-edit">Sửa</button>
-                        <button onclick="deleteGame(${index})" class="btn btn-delete">Xóa</button>
+        // Function to render the list of games
+        function renderGamesList() {
+            const gamesList = document.getElementById('gamesList');
+            const gamesListContent = games.map(game => `
+                <div class="game-item">
+                    <span>${game.title} - ${formatPrice(game.price)} VND</span>
+                    <div>
+                        <button onclick="editGame(${game.id})" class="btn btn-edit">Sửa</button>
+                        <button onclick="deleteGame(${game.id})" class="btn btn-delete">Xóa</button>
                     </div>
-                `;
-                
-                listContainer.appendChild(gameItem);
+                </div>
+            `).join('');
+
+            gamesList.innerHTML = `
+                <h2>Danh Sách Game Hiện Tại</h2>
+                ${gamesListContent}
+            `;
+        }
+
+        // Function to format price with thousands separator
+        function formatPrice(price) {
+            return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        // Function to delete a game
+        function deleteGame(gameId) {
+            if (confirm('Bạn có chắc chắn muốn xóa game này?')) {
+                games = games.filter(game => game.id !== gameId);
+                saveGamesToLocalStorage();
+                renderGamesList();
+            }
+        }
+
+        // Function to edit a game
+        function editGame(gameId) {
+            // Find the game to edit
+            const gameToEdit = games.find(game => game.id === gameId);
+            
+            // Populate form with game details
+            gameIdInput.value = gameToEdit.id;
+            gameTitleInput.value = gameToEdit.title;
+            gamePriceInput.value = gameToEdit.price;
+            gameImageInput.value = gameToEdit.image;
+
+            // Reset and set category checkboxes
+            categoryCheckboxes.forEach(cb => {
+                cb.checked = gameToEdit.categories.includes(cb.value);
             });
 
-            gameListContainer.appendChild(listContainer);
+            // Change form to edit mode
+            submitBtn.textContent = 'Cập Nhật Game';
+            cancelEditBtn.style.display = 'inline-block';
+            gameForm.classList.add('edit-mode');
+
+            // Switch to single game tab
+            tabs[0].click();
         }
 
-        // Thêm game mới
+        // Cancel edit mode
+        cancelEditBtn.addEventListener('click', () => {
+            // Reset form
+            gameForm.reset();
+            gameIdInput.value = '';
+            submitBtn.textContent = 'Thêm Game';
+            cancelEditBtn.style.display = 'none';
+            gameForm.classList.remove('edit-mode');
+        });
+
+        // Event listener for form submission
         gameForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            const gameIndex = parseInt(gameIndexInput.value);
-            
-            const game = {
-                name: gameNameInput.value,
-                image: gameImageInput.value,
-                downloadLink: gameDownloadLinkInput.value,
-                category: gameCategoryInput.value
-            };
 
-            if (gameIndex === -1) {
-                // Thêm game mới
-                games.push(game);
+            // Get form values
+            const title = gameTitleInput.value;
+            const price = parseInt(gamePriceInput.value);
+            const image = gameImageInput.value || `https://via.placeholder.com/300x150?text=${encodeURIComponent(title)}`;
+
+            // Get selected categories
+            const selectedCategories = Array.from(categoryCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+
+            // Check if we're editing an existing game or adding a new one
+            const gameId = gameIdInput.value;
+            
+            if (gameId) {
+                // Edit existing game
+                const gameIndex = games.findIndex(game => game.id === parseInt(gameId));
+                if (gameIndex !== -1) {
+                    games[gameIndex] = {
+                        id: parseInt(gameId),
+                        title,
+                        price,
+                        image,
+                        categories: selectedCategories
+                    };
+                }
             } else {
-                // Cập nhật game
-                games[gameIndex] = game;
+                // Add new game
+                const newGame = {
+                    id: games.length > 0 ? Math.max(...games.map(g => g.id)) + 1 : 1,
+                    title,
+                    price,
+                    image,
+                    categories: selectedCategories
+                };
+                games.push(newGame);
             }
-            
-            // Lưu vào localStorage
-            localStorage.setItem('games', JSON.stringify(games));
-            
-            // Render lại danh sách
-            renderGameList();
-            
-            // Đặt lại form
+
+            // Save to localStorage
+            saveGamesToLocalStorage();
+
+            // Render updated games list
+            renderGamesList();
+
+            // Reset form
             gameForm.reset();
-            gameIndexInput.value = -1;
+            gameIdInput.value = '';
             submitBtn.textContent = 'Thêm Game';
-            cancelBtn.style.display = 'none';
+            cancelEditBtn.style.display = 'none';
+            gameForm.classList.remove('edit-mode');
         });
 
-        // Xóa game
-        function deleteGame(index) {
-            // Xác nhận trước khi xóa
-            if (confirm('Bạn có chắc chắn muốn xóa game này không?')) {
-                games.splice(index, 1);
-                localStorage.setItem('games', JSON.stringify(games));
-                renderGameList();
-            }
-        }
-
-        // Sửa game
-        function editGame(index) {
-            const game = games[index];
-            
-            // Điền thông tin game vào form
-            gameNameInput.value = game.name;
-            gameImageInput.value = game.image;
-            gameDownloadLinkInput.value = game.downloadLink;
-            gameCategoryInput.value = game.category;
-            
-            // Cập nhật trạng thái form
-            gameIndexInput.value = index;
-            submitBtn.textContent = 'Cập Nhật Game';
-            cancelBtn.style.display = 'inline-block';
-        }
-
-        // Hủy chỉnh sửa
-        cancelBtn.addEventListener('click', function() {
-            // Đặt lại form
-            gameForm.reset();
-            gameIndexInput.value = -1;
-            submitBtn.textContent = 'Thêm Game';
-            this.style.display = 'none';
+        // Call renderGamesList to initialize the list
+        renderGamesList();
+        
+        // =========== THÊM CODE MỚI CHO CHỨC NĂNG BULK IMPORT TEXT ==========
+        
+        // Additional variables for bulk text import
+        const bulkTabs = document.querySelectorAll('[data-bulk-tab]');
+        const csvImportSection = document.getElementById('csvImportSection');
+        const textImportSection = document.getElementById('textImportSection');
+        const gamesListInput = document.getElementById('gamesListInput');
+        const textPreview = document.getElementById('textPreview');
+        
+        let currentBulkMode = 'csv';
+        let parsedGames = [];
+        
+        // Switch between CSV and Text input in bulk import tab
+        bulkTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all bulk tabs
+                bulkTabs.forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                currentBulkMode = tab.dataset.bulkTab;
+                
+                // Show/hide corresponding sections
+                if (currentBulkMode === 'csv') {
+                    csvImportSection.style.display = 'block';
+                    textImportSection.style.display = 'none';
+                } else {
+                    csvImportSection.style.display = 'none';
+                    textImportSection.style.display = 'block';
+                }
+                
+                // Reset preview and button
+                csvPreview.innerHTML = '';
+                textPreview.innerHTML = '';
+                importGamesBtn.style.display = 'none';
+            });
         });
-
-        // Render danh sách game khi trang web tải
-        document.addEventListener('DOMContentLoaded', renderGameList);
+        
+        // Process text input for bulk import
+        gamesListInput.addEventListener('input', function() {
+            parsedGames = [];
+            const lines = this.value.trim().split('\n');
+            
+            if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) {
+                textPreview.innerHTML = '';
+                importGamesBtn.style.display = 'none';
+                return;
+            }
+            
+            let tableHTML = '<table class="preview-table"><thead><tr><th>Tên Game</th><th>Giá (VND)</th><th>Hình Ảnh</th></tr></thead><tbody>';
+            let validLines = 0;
+            
+            lines.forEach((line, index) => {
+                const parts = line.split('|');
+                if (parts.length >= 2) {
+                    const title = parts[0].trim();
+                    const price = parseInt(parts[1].trim());
+                    const image = parts.length >= 3 ? parts[2].trim() : `https://via.placeholder.com/300x150?text=${encodeURIComponent(title)}`;
+                    
+                    if (title && !isNaN(price)) {
+                        validLines++;
+                        parsedGames.push({
+                            title,
+                            price,
+                            image,
+                            categories: ['other'] // Default category
+                        });
+                        
+                        tableHTML += `<tr>
+                            <td>${title}</td>
+                            <td>${formatPrice(price)} VND</td>
+                            <td>${image}</td>
+                        </tr>`;
+                    }
+                }
+            });
+            
+            tableHTML += '</tbody></table>';
+            
+            if (validLines > 0) {
+                textPreview.innerHTML = `<h3>Xem trước (${validLines} game):</h3>` + tableHTML;
+                importGamesBtn.style.display = 'inline-block';
+            } else {
+                textPreview.innerHTML = '<p>Không tìm thấy game hợp lệ. Vui lòng kiểm tra định dạng.</p>';
+                importGamesBtn.style.display = 'none';
+            }
+        });
+        
+        // Update the existing CSV file input handler
+        csvFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                Papa.parse(file, {
+                    header: true,
+                    complete: function(results) {
+                        parsedGames = [];
+                        const validGames = results.data.filter(row => row.title && row.price);
+                        
+                        if (validGames.length > 0) {
+                            let tableHTML = '<table class="preview-table"><thead><tr>';
+                            const headers = Object.keys(results.data[0]);
+                            headers.forEach(header => {
+                                tableHTML += `<th>${header}</th>`;
+                            });
+                            tableHTML += '</tr></thead><tbody>';
+                            
+                            validGames.forEach(game => {
+                                tableHTML += '<tr>';
+                                headers.forEach(header => {
+                                    tableHTML += `<td>${game[header] || ''}</td>`;
+                                });
+                                tableHTML += '</tr>';
+                                
+                                // Prepare game object for import
+                                parsedGames.push({
+                                    title: game.title,
+                                    price: parseInt(game.price),
+                                    image: game.image || `https://via.placeholder.com/300x150?text=${encodeURIComponent(game.title)}`,
+                                    categories: game.categories ? game.categories.split(',') : ['other']
+                                });
+                            });
+                            
+                            tableHTML += '</tbody></table>';
+                            csvPreview.innerHTML = `<h3>Xem trước (${validGames.length} game):</h3>` + tableHTML;
+                            importGamesBtn.style.display = 'inline-block';
+                        } else {
+                            csvPreview.innerHTML = '<p>Không tìm thấy game hợp lệ trong file CSV.</p>';
+                            importGamesBtn.style.display = 'none';
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Import games button click handler
+        importGamesBtn.addEventListener('click', function() {
+            if (parsedGames.length === 0) {
+                alert('Không có game nào để nhập.');
+                return;
+            }
+            
+            // Get the highest existing ID
+            const highestId = games.length > 0 ? Math.max(...games.map(g => g.id)) : 0;
+            
+            // Add IDs to new games and add them to the games array
+            parsedGames.forEach((game, index) => {
+                game.id = highestId + index + 1;
+                games.push(game);
+            });
+            
+            // Save to localStorage
+            saveGamesToLocalStorage();
+            
+            // Render updated games list
+            renderGamesList();
+            
+            // Reset preview and form
+            if (currentBulkMode === 'csv') {
+                csvFileInput.value = '';
+                csvPreview.innerHTML = '';
+            } else {
+                gamesListInput.value = '';
+                textPreview.innerHTML = '';
+            }
+            
+            importGamesBtn.style.display = 'none';
+            
+            // Show success message
+            alert(`Đã thêm thành công ${parsedGames.length} game.`);
+            parsedGames = [];
+        });
     </script>
 </body>
 </html>
