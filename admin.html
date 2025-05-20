@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Game</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-card: #1E1E1E;
+            --text-light: #FFFFFF;
+            --accent-purple: #6D28D9;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--accent-purple);
+            color: var(--text-light);
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--bg-card);
+            border: 1px solid #333;
+            color: var(--text-light);
+            border-radius: 5px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: var(--accent-purple);
+            color: var(--text-light);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background-color: #5B21B6;
+        }
+        #gameList {
+            margin-top: 30px;
+        }
+        .game-item {
+            background-color: var(--bg-card);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .game-item-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">Về Trang Chủ</a>
+
+    <div class="container">
+        <h1>Quản Lý Game</h1>
+        
+        <form id="gameForm">
+            <input type="hidden" id="gameIndex" value="-1">
+            
+            <div class="form-group">
+                <label for="gameName">Tên Game</label>
+                <input type="text" id="gameName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="gameImage">Link Ảnh Game</label>
+                <input type="text" id="gameImage" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="gameDownloadLink">Link Tải Game</label>
+                <input type="text" id="gameDownloadLink" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="gameCategory">Thể Loại</label>
+                <select id="gameCategory">
+                    <option value="Tất cả">Tất cả</option>
+                    <option value="Game Hot">Game Hot</option>
+                    <option value="Hành động">Hành động</option>
+                    <option value="Nhập vai">Nhập vai</option>
+                    <option value="Chiến thuật">Chiến thuật</option>
+                    <option value="Thể thao">Thể thao</option>
+                    <option value="Khác">Thể loại khác</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn" id="submitBtn">Thêm Game</button>
+            <button type="button" class="btn" id="cancelBtn" style="display:none;">Hủy</button>
+        </form>
+
+        <div id="gameList">
+            <h2>Danh Sách Game</h2>
+        </div>
+    </div>
+
+    <script>
+        // Khởi tạo danh sách game từ localStorage
+        let games = JSON.parse(localStorage.getItem('games')) || [];
+
+        // DOM Elements
+        const gameForm = document.getElementById('gameForm');
+        const gameNameInput = document.getElementById('gameName');
+        const gameImageInput = document.getElementById('gameImage');
+        const gameDownloadLinkInput = document.getElementById('gameDownloadLink');
+        const gameCategoryInput = document.getElementById('gameCategory');
+        const gameIndexInput = document.getElementById('gameIndex');
+        const submitBtn = document.getElementById('submitBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        // Render danh sách game
+        function renderGameList() {
+            const gameListElement = document.getElementById('gameList');
+            
+            // Xóa danh sách cũ
+            const existingList = gameListElement.querySelector('div');
+            if (existingList) {
+                existingList.remove();
+            }
+
+            // Tạo danh sách mới
+            const listContainer = document.createElement('div');
+            
+            games.forEach((game, index) => {
+                const gameItem = document.createElement('div');
+                gameItem.classList.add('game-item');
+                gameItem.innerHTML = `
+                    <span>${game.name} (${game.category})</span>
+                    <div class="game-item-actions
