@@ -162,15 +162,4 @@
             // Xóa danh sách cũ
             const existingList = gameListElement.querySelector('div');
             if (existingList) {
-                existingList.remove();
-            }
-
-            // Tạo danh sách mới
-            const listContainer = document.createElement('div');
-            
-            games.forEach((game, index) => {
-                const gameItem = document.createElement('div');
-                gameItem.classList.add('game-item');
-                gameItem.innerHTML = `
-                    <span>${game.name} (${game.category})</span>
-                    <div class="game-item-actions
+                exist
