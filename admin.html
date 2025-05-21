@@ -337,6 +337,75 @@
             cursor: not-allowed;
             opacity: 0.6;
         }
+        
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .radio-group input {
+            margin-right: 5px;
+        }
+        
+        .discount-codes-list {
+            margin-top: 30px;
+        }
+        
+        .discount-code-item {
+            background-color: var(--dark-bg);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .discount-details {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .discount-code {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.1em;
+        }
+        
+        .discount-value {
+            margin-top: 5px;
+        }
+        
+        .discount-range {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        
+        .discount-expiry {
+            font-size: 0.85em;
+            color: #777;
+        }
+        
+        .expired-code {
+            opacity: 0.6;
+        }
+        
+        .expired-label {
+            display: inline-block;
+            background-color: #777;
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -447,28 +516,89 @@
         <!-- Thêm tab cấu hình giảm giá -->
         <div id="saleConfigTab" class="sale-config-form" style="display:none;">
             <h2>Cấu Hình Giảm Giá</h2>
-            <form id="saleConfigForm">
-                <div class="form-group">
-                    <label for="saleThreshold">Ngưỡng giá áp dụng (VND)</label>
-                    <input type="number" id="saleThreshold" class="form-control" value="1000000" placeholder="Ví dụ: 1000000">
-                    <small>Áp dụng giảm giá cho các game có giá từ ngưỡng này trở lên</small>
-                </div>
+            
+            <div class="tabs">
+                <div class="tab active" data-sale-tab="price-range">Theo Khoảng Giá</div>
+                <div class="tab" data-sale-tab="discount-codes">Mã Giảm Giá</div>
+            </div>
+            
+            <div id="priceRangeSection">
+                <form id="saleConfigForm">
+                    <div class="form-group">
+                        <label for="minPriceThreshold">Giá tối thiểu (VND)</label>
+                        <input type="number" id="minPriceThreshold" class="form-control" value="1000000" placeholder="Ví dụ: 1000000">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="maxPriceThreshold">Giá tối đa (VND)</label>
+                        <input type="number" id="maxPriceThreshold" class="form-control" value="5000000" placeholder="Ví dụ: 5000000">
+                        <small>Áp dụng giảm giá cho các game có giá từ giá tối thiểu đến giá tối đa</small>
+                    </div>
 
-                <div class="form-group">
-                    <label for="salePrice">Giá sau khuyến mãi (VND)</label>
-                    <input type="number" id="salePrice" class="form-control" value="199000" placeholder="Ví dụ: 199000">
-                </div>
+                    <div class="form-group">
+                        <label for="salePrice">Giá sau khuyến mãi (VND)</label>
+                        <input type="number" id="salePrice" class="form-control" value="199000" placeholder="Ví dụ: 199000">
+                    </div>
 
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="saleEnabled" checked>
-                        Bật chương trình giảm giá
-                    </label>
-                </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="saleEnabled" checked>
+                            Bật chương trình giảm giá
+                        </label>
+                    </div>
 
-                <button type="submit" class="btn">Lưu Cấu Hình</button>
-                <button type="button" id="applyAllBtn" class="btn btn-import">Áp Dụng Cho Tất Cả Game</button>
-            </form>
+                    <button type="submit" class="btn">Lưu Cấu Hình</button>
+                    <button type="button" id="applyAllBtn" class="btn btn-import">Áp Dụng Cho Tất Cả Game</button>
+                </form>
+            </div>
+            
+            <div id="discountCodesSection" style="display:none;">
+                <form id="discountCodeForm">
+                    <div class="form-group">
+                        <label for="discountCode">Mã Giảm Giá</label>
+                        <input type="text" id="discountCode" class="form-control" placeholder="VD: SUMMER2025" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Loại Giảm Giá</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="discountType" value="fixed" checked> Số Tiền Cố Định
+                            </label>
+                            <label>
+                                <input type="radio" name="discountType" value="percentage"> Phần Trăm (%)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="discountValue">Giá Trị Giảm Giá</label>
+                        <input type="number" id="discountValue" class="form-control" placeholder="VD: 50000 hoặc 10" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="minPrice">Áp Dụng Cho Game Từ Giá (VND)</label>
+                        <input type="number" id="minPrice" class="form-control" placeholder="VD: 100000">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="maxPrice">Đến Giá (VND)</label>
+                        <input type="number" id="maxPrice" class="form-control" placeholder="VD: 500000">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="expiryDate">Hạn Sử Dụng (Không Bắt Buộc)</label>
+                        <input type="date" id="expiryDate" class="form-control">
+                    </div>
+                    
+                    <button type="submit" class="btn">Thêm Mã Giảm Giá</button>
+                </form>
+                
+                <div id="discountCodesList" class="discount-codes-list">
+                    <h3>Danh Sách Mã Giảm Giá</h3>
+                    <!-- Discount codes will be listed here -->
+                </div>
+            </div>
         </div>
 
         <!-- Search Box -->
@@ -597,9 +727,13 @@
         // Initialize sale configuration
         let saleConfig = {
             enabled: true,
-            threshold: 1000000,
+            minThreshold: 1000000,
+            maxThreshold: 5000000,
             salePrice: 199000
         };
+
+        // Initialize discount codes
+        let discountCodes = [];
 
         try {
             const storedSaleConfig = localStorage.getItem('saleConfig');
@@ -609,9 +743,16 @@
                 // Lưu cấu hình khuyến mãi mặc định
                 localStorage.setItem('saleConfig', JSON.stringify(saleConfig));
             }
+            
+            const storedDiscountCodes = localStorage.getItem('discountCodes');
+            if (storedDiscountCodes) {
+                discountCodes = JSON.parse(storedDiscountCodes);
+            }
+            
             debug('Initialized sale config', saleConfig);
+            debug('Initialized discount codes', discountCodes);
         } catch (error) {
-            debug('Error initializing sale config', error);
+            debug('Error initializing sale config or discount codes', error);
         }
 
         // Tab switching
@@ -698,6 +839,19 @@
             }
         }
 
+        // Function to save discount codes to localStorage
+        function saveDiscountCodesToLocalStorage() {
+            try {
+                localStorage.setItem('discountCodes', JSON.stringify(discountCodes));
+                debug('Saved discount codes to localStorage', discountCodes.length);
+                return true;
+            } catch (error) {
+                debug('Error saving discount codes to localStorage', error);
+                showStatus('Không thể lưu mã giảm giá!', true);
+                return false;
+            }
+        }
+
         // Function to save sale config to localStorage
         function saveSaleConfigToLocalStorage() {
             try {
@@ -713,7 +867,9 @@
 
         // Function to check if a game is on sale
         function isGameOnSale(game) {
-            return saleConfig.enabled && game.price >= saleConfig.threshold;
+            return saleConfig.enabled && 
+                   game.price >= saleConfig.minThreshold && 
+                   game.price <= saleConfig.maxThreshold;
         }
 
         // Function to get the sale price for a game
@@ -722,6 +878,108 @@
                 return saleConfig.salePrice;
             }
             return game.price;
+        }
+        
+        // Function to check if a discount code is valid for a game
+        function getValidDiscountForGame(game, code) {
+            // Check if there are any discount codes at all
+            if (!discountCodes || discountCodes.length === 0) {
+                return null;
+            }
+            
+            // If no code provided or code doesn't exist, return null
+            if (!code) {
+                return null;
+            }
+            
+            // Find the discount code
+            const discountCode = discountCodes.find(dc => dc.code.toLowerCase() === code.toLowerCase());
+            
+            if (!discountCode) {
+                return null;
+            }
+            
+            // Check if code is expired
+            if (discountCode.expiry && new Date(discountCode.expiry) < new Date()) {
+                return null;
+            }
+            
+            // Check if game price is in the discount range
+            if (discountCode.minPrice && game.price < discountCode.minPrice) {
+                return null;
+            }
+            
+            if (discountCode.maxPrice && game.price > discountCode.maxPrice) {
+                return null;
+            }
+            
+            return discountCode;
+        }
+        
+        // Function to calculate discounted price with a discount code
+        function calculateDiscountedPrice(originalPrice, discountCode) {
+            if (!discountCode) {
+                return originalPrice;
+            }
+            
+            if (discountCode.type === 'percentage') {
+                // Calculate percentage discount
+                const discount = (originalPrice * discountCode.value) / 100;
+                return Math.max(0, originalPrice - discount);
+            } else {
+                // Fixed amount discount
+                return Math.max(0, originalPrice - discountCode.value);
+            }
+        }
+        
+        // Function to render discount codes list
+        function renderDiscountCodes() {
+            if (!discountCodesList) {
+                return;
+            }
+            
+            const currentDate = new Date();
+            
+            if (discountCodes.length === 0) {
+                discountCodesList.innerHTML = `
+                    <h3>Danh Sách Mã Giảm Giá</h3>
+                    <div class="discount-code-item">
+                        <span>Chưa có mã giảm giá nào.</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            const codesListContent = discountCodes.map((code, index) => {
+                const isExpired = code.expiry && new Date(code.expiry) < currentDate;
+                const expiryText = code.expiry ? `Hết hạn: ${new Date(code.expiry).toLocaleDateString()}` : 'Không giới hạn thời gian';
+                const priceRangeText = code.minPrice || code.maxPrice ? 
+                    `Áp dụng cho game từ ${code.minPrice ? formatPrice(code.minPrice) + ' VND' : '0 VND'} đến ${code.maxPrice ? formatPrice(code.maxPrice) + ' VND' : 'không giới hạn'}` : 
+                    'Áp dụng cho tất cả các game';
+                
+                const discountValueText = code.type === 'percentage' ? 
+                    `Giảm ${code.value}%` : 
+                    `Giảm ${formatPrice(code.value)} VND`;
+                
+                return `
+                <div class="discount-code-item ${isExpired ? 'expired-code' : ''}">
+                    <div class="discount-details">
+                        <span class="discount-code">${code.code} ${isExpired ? '<span class="expired-label">Đã hết hạn</span>' : ''}</span>
+                        <span class="discount-value">${discountValueText}</span>
+                        <span class="discount-range">${priceRangeText}</span>
+                        <span class="discount-expiry">${expiryText}</span>
+                    </div>
+                    <div>
+                        <button onclick="deleteDiscountCode(${index})" class="btn btn-delete">Xóa</button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            
+            discountCodesList.innerHTML = `
+                <h3>Danh Sách Mã Giảm Giá (${discountCodes.length})</h3>
+                ${codesListContent}
+            `;
         }
 
         // Function to format price with thousands separator
@@ -1055,6 +1313,94 @@
             }
         });
 
+        // Function to delete a discount code
+        function deleteDiscountCode(index) {
+            if (confirm('Bạn có chắc chắn muốn xóa mã giảm giá này?')) {
+                debug('Deleting discount code', index);
+                discountCodes.splice(index, 1);
+                if (saveDiscountCodesToLocalStorage()) {
+                    renderDiscountCodes();
+                    showStatus('Đã xóa mã giảm giá thành công!');
+                }
+            }
+        }
+
+        // Event listener for discount code form submission
+        discountCodeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            debug('Discount code form submitted');
+
+            try {
+                // Get form values
+                const code = discountCodeInput.value.trim().toUpperCase();
+                const type = Array.from(discountTypeInputs).find(input => input.checked).value;
+                const value = parseInt(discountValueInput.value);
+                const minPrice = minPriceInput.value ? parseInt(minPriceInput.value) : null;
+                const maxPrice = maxPriceInput.value ? parseInt(maxPriceInput.value) : null;
+                const expiry = expiryDateInput.value ? new Date(expiryDateInput.value) : null;
+
+                // Validate inputs
+                if (!code) {
+                    debug('Validation error: Code empty');
+                    showStatus('Mã giảm giá không được để trống!', true);
+                    return;
+                }
+
+                if (isNaN(value) || value <= 0) {
+                    debug('Validation error: Invalid discount value', value);
+                    showStatus('Giá trị giảm giá phải là số dương!', true);
+                    return;
+                }
+
+                // Check if percentage is valid
+                if (type === 'percentage' && value > 100) {
+                    debug('Validation error: Percentage too high', value);
+                    showStatus('Phần trăm giảm giá không được vượt quá 100%!', true);
+                    return;
+                }
+
+                // Check if min price is less than max price
+                if (minPrice && maxPrice && minPrice > maxPrice) {
+                    debug('Validation error: Min price greater than max price', { minPrice, maxPrice });
+                    showStatus('Giá tối thiểu không được lớn hơn giá tối đa!', true);
+                    return;
+                }
+
+                // Check if code already exists
+                const existingCodeIndex = discountCodes.findIndex(dc => dc.code.toLowerCase() === code.toLowerCase());
+                if (existingCodeIndex !== -1) {
+                    debug('Validation error: Code already exists', code);
+                    showStatus(`Mã giảm giá "${code}" đã tồn tại!`, true);
+                    return;
+                }
+
+                // Create new discount code
+                const newDiscountCode = {
+                    code,
+                    type,
+                    value,
+                    minPrice,
+                    maxPrice,
+                    expiry: expiry ? expiry.toISOString() : null
+                };
+
+                // Add new discount code
+                debug('Adding new discount code', newDiscountCode);
+                discountCodes.push(newDiscountCode);
+                
+                if (saveDiscountCodesToLocalStorage()) {
+                    renderDiscountCodes();
+                    showStatus('Thêm mã giảm giá mới thành công!');
+                    
+                    // Reset form
+                    discountCodeForm.reset();
+                }
+            } catch (error) {
+                debug('Error in discount code form submission', error);
+                showStatus('Có lỗi xảy ra khi xử lý mã giảm giá!', true);
+            }
+        });
+
         // Event listener for sale config form submission
         saleConfigForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -1062,14 +1408,27 @@
 
             try {
                 // Get form values
-                const threshold = parseInt(saleThresholdInput.value);
+                const minThreshold = parseInt(minPriceThresholdInput.value);
+                const maxThreshold = parseInt(maxPriceThresholdInput.value);
                 const salePrice = parseInt(salePriceInput.value);
                 const enabled = saleEnabledCheckbox.checked;
 
                 // Validate inputs
-                if (isNaN(threshold) || threshold <= 0) {
-                    debug('Validation error: Invalid threshold', threshold);
-                    showStatus('Ngưỡng giá phải là số dương!', true);
+                if (isNaN(minThreshold) || minThreshold < 0) {
+                    debug('Validation error: Invalid min threshold', minThreshold);
+                    showStatus('Ngưỡng giá tối thiểu phải là số không âm!', true);
+                    return;
+                }
+
+                if (isNaN(maxThreshold) || maxThreshold <= 0) {
+                    debug('Validation error: Invalid max threshold', maxThreshold);
+                    showStatus('Ngưỡng giá tối đa phải là số dương!', true);
+                    return;
+                }
+                
+                if (minThreshold >= maxThreshold) {
+                    debug('Validation error: Min threshold greater than or equal to max threshold', { minThreshold, maxThreshold });
+                    showStatus('Ngưỡng giá tối thiểu phải nhỏ hơn ngưỡng giá tối đa!', true);
                     return;
                 }
 
@@ -1081,7 +1440,8 @@
 
                 // Update sale config
                 saleConfig = {
-                    threshold,
+                    minThreshold,
+                    maxThreshold,
                     salePrice,
                     enabled
                 };
