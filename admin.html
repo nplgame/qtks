@@ -542,6 +542,56 @@
             font-size: 0.7em;
             margin-left: 5px;
         }
+
+        /* Sync area */
+        .sync-section {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .store-id-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        .store-id-value {
+            font-family: monospace;
+            font-size: 1.2rem;
+            background-color: var(--dark-bg);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        /* Save indicator */
+        .save-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(45, 55, 72, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .save-indicator.visible {
+            display: block;
+            animation: fade-in-out 3s forwards;
+        }
+
+        @keyframes fade-in-out {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -614,6 +664,11 @@
         </div>
     </div>
 
+    <!-- Save Indicator -->
+    <div id="saveIndicator" class="save-indicator">
+        Đang lưu thay đổi...
+    </div>
+
     <header>
         <div class="header-content">
             <h1>Quản Lý Game</h1>
@@ -626,6 +681,17 @@
 
     <div class="container">
         <div id="statusMessage" style="display: none;" class="status-message"></div>
+        
+        <!-- Store ID Section -->
+        <div class="sync-section">
+            <h3>Thông Tin Cửa Hàng</h3>
+            <div class="store-id-display">
+                <span>Mã cửa hàng của bạn:</span>
+                <span class="store-id-value" id="storeIdDisplay">LOADING...</span>
+                <button id="copyStoreIdBtn" class="btn">Sao chép</button>
+            </div>
+            <p>Dùng mã cửa hàng này để truy cập cửa hàng từ các thiết bị khác nhau.</p>
+        </div>
 
         <div class="tabs">
             <div class="tab active" data-tab="single">Thêm Game Từng Cái</div>
@@ -797,7 +863,7 @@
 
                     <div style="margin-top: 20px;">
                         <button type="submit" class="btn">Lưu Cấu Hình</button>
-                        <button type="button" id="applyAllBtn" class="btn btn-import">Áp Dụng Cho Tất Cả Game</button>
+                        <button type="button" id="applyAllBtn" class="btn btn-import">Áp Dụng Cho Tất Cả Game</button>.+
                         <button type="button" id="restoreAllBtn" class="btn btn-restore">Khôi Phục Giá Gốc</button>
                     </div>
                 </form>
@@ -849,7 +915,12 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
+        // Constants
+        const JSONBIN_API_KEY = '$2a$10$fKVnmr7DOyGkCXhDHVYqSeCsaTZAEXYk13Jn4hYORE0yvsFa0/8gy'; // Replace with your actual key
+        const JSONBIN_API_URL = 'https://api.jsonbin.io/v3/b';
+        
         // Authentication check
         function checkAuth() {
             const authData = JSON.parse(localStorage.getItem('adminAuth') || '{}');
@@ -903,52 +974,25 @@
             }, 5000);
         }
 
-        // Initialize games from localStorage or use default games
-        let games = [];
-        try {
-            const storedGames = localStorage.getItem('games');
-            games = storedGames ? JSON.parse(storedGames) : [
-                {
-                    id: 1,
-                    title: "The First Berserker: Khazan",
-                    price: 49000,
-                    originalPrice: 49000,
-                    image: "https://via.placeholder.com/300x150?text=Khazan",
-                    categories: ["action", "rpg"]
-                },
-                {
-                    id: 2,
-                    title: "Black Myth: Wukong",
-                    price: 49000,
-                    originalPrice: 49000,
-                    image: "https://via.placeholder.com/300x150?text=Wukong",
-                    categories: ["action", "rpg"]
-                },
-                {
-                    id: 3,
-                    title: "Marvel's Spider-Man 2",
-                    price: 49000,
-                    originalPrice: 49000,
-                    image: "https://via.placeholder.com/300x150?text=Spider-Man+2",
-                    categories: ["action", "hot"]
-                }
-            ];
+        // Show save indicator
+        function showSaveIndicator(message = 'Đang lưu thay đổi...') {
+            const saveIndicator = document.getElementById('saveIndicator');
+            saveIndicator.textContent = message;
+            saveIndicator.classList.add('visible');
             
-            // Ensure all games have originalPrice property
-            games.forEach(game => {
-                if (!game.hasOwnProperty('originalPrice')) {
-                    game.originalPrice = game.price;
-                }
-            });
-            
-            debug('Initialized games', games);
-        } catch (error) {
-            debug('Error initializing games', error);
-            games = [];
-            showStatus('Có lỗi khi tải dữ liệu. Đã khởi tạo danh sách trống.', true);
+            // Auto-hide after animation completes
+            setTimeout(() => {
+                saveIndicator.classList.remove('visible');
+            }, 3000);
         }
 
-        // Initialize sale configuration
+        // Initialize store variables
+        let storeId = '';
+        let binId = '';
+        
+        // Initialize games from store or use default games
+        let games = [];
+        let filteredGames = [];
         let saleConfig = {
             enabled: true,
             minThreshold: 0,
@@ -957,66 +1001,21 @@
             salePrice: 199000,
             salePercent: 30
         };
-
-        try {
-            const storedSaleConfig = localStorage.getItem('saleConfig');
-            if (storedSaleConfig) {
-                saleConfig = JSON.parse(storedSaleConfig);
-                // Ensure backward compatibility
-                if (!saleConfig.hasOwnProperty('minThreshold')) {
-                    saleConfig.minThreshold = 0;
-                }
-                if (!saleConfig.hasOwnProperty('maxThreshold')) {
-                    saleConfig.maxThreshold = 10000000;
-                }
-                if (!saleConfig.hasOwnProperty('type')) {
-                    saleConfig.type = 'fixed';
-                }
-                if (!saleConfig.hasOwnProperty('salePercent')) {
-                    saleConfig.salePercent = 30;
-                }
-            } else {
-                localStorage.setItem('saleConfig', JSON.stringify(saleConfig));
-            }
-            debug('Initialized sale config', saleConfig);
-        } catch (error) {
-            debug('Error initializing sale config', error);
-        }
-
-        // Initialize discount codes
         let discountCodes = [];
-        try {
-            const storedCodes = localStorage.getItem('discountCodes');
-            if (storedCodes) {
-                discountCodes = JSON.parse(storedCodes);
-            } else {
-                discountCodes = [
-                    {
-                        id: 1,
-                        code: "SUMMER2023",
-                        amount: 50000,
-                        type: "fixed", // "fixed" or "percent"
-                        minPrice: 100000,
-                        maxPrice: null
-                    },
-                    {
-                        id: 2,
-                        code: "WELCOME20",
-                        amount: 20,
-                        type: "percent",
-                        minPrice: 0,
-                        maxPrice: 500000
-                    }
-                ];
-                localStorage.setItem('discountCodes', JSON.stringify(discountCodes));
-            }
-            debug('Initialized discount codes', discountCodes);
-        } catch (error) {
-            debug('Error initializing discount codes', error);
-            discountCodes = [];
-        }
+        
+        // Variables for duplicate game handling
+        let pendingGame = null;
+        let duplicateAction = null;
+        
+        // Pagination variables
+        let currentPage = 1;
+        const gamesPerPage = 10;
+        let currentBulkMode = 'csv';
+        let parsedGames = [];
 
         // DOM Elements
+        const storeIdDisplay = document.getElementById('storeIdDisplay');
+        const copyStoreIdBtn = document.getElementById('copyStoreIdBtn');
         const gameForm = document.getElementById('gameForm');
         const gameIdInput = document.getElementById('gameId');
         const gameTitleInput = document.getElementById('gameTitle');
@@ -1083,19 +1082,33 @@
         const searchInput = document.getElementById('searchInput');
         const pagination = document.getElementById('pagination');
         
-        // Variables for duplicate game handling
-        let pendingGame = null;
-        let duplicateAction = null;
-        
-        // Pagination variables
-        let currentPage = 1;
-        const gamesPerPage = 10;
-        let filteredGames = [...games];
-        let currentBulkMode = 'csv';
-        let parsedGames = [];
+        // Copy Store ID button
+        copyStoreIdBtn.addEventListener('click', function() {
+            const textToCopy = storeIdDisplay.textContent;
+            
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    showStatus('Đã sao chép mã cửa hàng!');
+                })
+                .catch(err => {
+                    console.error('Error copying text: ', err);
+                    
+                    // Fallback method
+                    const tempInput = document.createElement('input');
+                    tempInput.value = textToCopy;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    
+                    showStatus('Đã sao chép mã cửa hàng!');
+                });
+        });
 
         // Initialize the page
-        function init() {
+        async function init() {
+            await initializeStore();
+            
             // Populate sale config form
             saleTypeSelect.value = saleConfig.type;
             saleMinThresholdInput.value = saleConfig.minThreshold;
@@ -1116,9 +1129,212 @@
             // Update discount percent visual
             document.querySelector('.indicator-fill.discount-percent').style.width = saleConfig.salePercent + '%';
             
+            // Display store ID
+            storeIdDisplay.textContent = storeId;
+            
             // Render game list and discount codes
             renderGamesList();
             renderDiscountCodes();
+        }
+
+        // Initialize store
+        async function initializeStore() {
+            // Check if we have a store ID in localStorage
+            storeId = localStorage.getItem('storeId');
+            binId = localStorage.getItem('storeBinId');
+            
+            if (!storeId) {
+                // Generate a new store ID if none exists
+                storeId = generateStoreId();
+                localStorage.setItem('storeId', storeId);
+                
+                // Create a new bin for this store
+                try {
+                    await createNewStore();
+                } catch (error) {
+                    console.error('Error creating new store:', error);
+                    showStatus('Không thể tạo cửa hàng mới!', true);
+                }
+            } else if (!binId) {
+                // If we have store ID but no bin ID, try to find it
+                try {
+                    const response = await axios.get(`${JSONBIN_API_URL}/find`, {
+                        params: {
+                            name: `gamestore-${storeId}`
+                        },
+                        headers: {
+                            'X-Master-Key': JSONBIN_API_KEY
+                        }
+                    });
+                    
+                    if (response.status === 200 && response.data.length > 0) {
+                        binId = response.data[0].record;
+                        localStorage.setItem('storeBinId', binId);
+                        await loadStoreData();
+                    } else {
+                        // Create a new store if not found
+                        await createNewStore();
+                    }
+                } catch (error) {
+                    console.error('Error finding store:', error);
+                    showStatus('Không thể tìm cửa hàng!', true);
+                    
+                    // Create a new store as fallback
+                    await createNewStore();
+                }
+            } else {
+                // Load data from existing store
+                await loadStoreData();
+            }
+        }
+
+        // Generate a random store ID
+        function generateStoreId() {
+            const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let result = '';
+            for (let i = 0; i < 8; i++) {
+                result += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return result;
+        }
+
+        // Create a new store in JSONBin
+        async function createNewStore() {
+            try {
+                const initialData = {
+                    games: [],
+                    saleConfig: {
+                        enabled: true,
+                        minThreshold: 0,
+                        maxThreshold: 10000000,
+                        type: 'fixed',
+                        salePrice: 199000,
+                        salePercent: 30
+                    },
+                    discountCodes: []
+                };
+                
+                const response = await axios.post(JSONBIN_API_URL, initialData, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': JSONBIN_API_KEY,
+                        'X-Bin-Name': `gamestore-${storeId}`
+                    }
+                });
+                
+                if (response.status === 200 || response.status === 201) {
+                    binId = response.data.metadata.id;
+                    localStorage.setItem('storeBinId', binId);
+                    debug('Created new store with ID:', binId);
+                    
+                    // Initialize empty store
+                    games = [];
+                    saleConfig = initialData.saleConfig;
+                    discountCodes = initialData.discountCodes;
+                    
+                    filteredGames = [...games];
+                    renderGamesList();
+                } else {
+                    throw new Error('Failed to create new store');
+                }
+            } catch (error) {
+                console.error('Error in createNewStore:', error);
+                showStatus('Không thể tạo cửa hàng mới!', true);
+            }
+        }
+
+        // Load store data from JSONBin
+        async function loadStoreData() {
+            try {
+                const response = await axios.get(`${JSONBIN_API_URL}/${binId}/latest`, {
+                    headers: {
+                        'X-Master-Key': JSONBIN_API_KEY
+                    }
+                });
+                
+                if (response.status === 200) {
+                    const storeData = response.data.record;
+                    
+                    // Update local data
+                    games = storeData.games || [];
+                    saleConfig = storeData.saleConfig || {
+                        enabled: true,
+                        minThreshold: 0,
+                        maxThreshold: 10000000,
+                        type: 'fixed',
+                        salePrice: 199000,
+                        salePercent: 30
+                    };
+                    discountCodes = storeData.discountCodes || [];
+                    
+                    debug('Loaded store data', { games: games.length, saleConfig, discountCodes });
+                    
+                    // Ensure all games have required properties
+                    games.forEach(game => {
+                        if (!game.hasOwnProperty('originalPrice')) {
+                            game.originalPrice = game.price;
+                        }
+                    });
+                    
+                    filteredGames = [...games];
+                } else {
+                    throw new Error('Failed to load store data');
+                }
+            } catch (error) {
+                console.error('Error loading store data:', error);
+                showStatus('Lỗi khi tải dữ liệu cửa hàng!', true);
+                
+                // Fallback to empty data
+                games = [];
+                filteredGames = [];
+            }
+        }
+
+        // Save store data to JSONBin
+        async function saveStoreData() {
+            showSaveIndicator();
+            
+            try {
+                if (!binId) {
+                    throw new Error('Store bin ID not found');
+                }
+                
+                const storeData = {
+                    games: games,
+                    saleConfig: saleConfig,
+                    discountCodes: discountCodes
+                };
+                
+                const response = await axios.put(`${JSONBIN_API_URL}/${binId}`, storeData, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': JSONBIN_API_KEY
+                    }
+                });
+                
+                if (response.status === 200) {
+                    debug('Store data saved successfully');
+                    showSaveIndicator('Lưu thành công!');
+                    return true;
+                } else {
+                    throw new Error('Failed to save store data');
+                }
+            } catch (error) {
+                console.error('Error saving store data:', error);
+                showSaveIndicator('Lỗi khi lưu!');
+                showStatus('Lỗi khi lưu dữ liệu!', true);
+                
+                // Attempt a backup save to localStorage
+                try {
+                    localStorage.setItem('games_backup', JSON.stringify(games));
+                    localStorage.setItem('saleConfig_backup', JSON.stringify(saleConfig));
+                    localStorage.setItem('discountCodes_backup', JSON.stringify(discountCodes));
+                } catch (e) {
+                    console.error('Failed to create backup', e);
+                }
+                
+                return false;
+            }
         }
 
         // Tab switching
@@ -1212,45 +1428,6 @@
             const value = Math.min(100, Math.max(0, parseInt(this.value) || 0));
             document.querySelector('.indicator-fill.discount-percent').style.width = value + '%';
         });
-
-        // Function to save games to localStorage
-        function saveGamesToLocalStorage() {
-            try {
-                localStorage.setItem('games', JSON.stringify(games));
-                debug('Saved games to localStorage', games.length);
-                return true;
-            } catch (error) {
-                debug('Error saving to localStorage', error);
-                showStatus('Không thể lưu dữ liệu! Vui lòng kiểm tra dung lượng localStorage.', true);
-                return false;
-            }
-        }
-
-        // Function to save sale config to localStorage
-        function saveSaleConfigToLocalStorage() {
-            try {
-                localStorage.setItem('saleConfig', JSON.stringify(saleConfig));
-                debug('Saved sale config to localStorage', saleConfig);
-                return true;
-            } catch (error) {
-                debug('Error saving sale config to localStorage', error);
-                showStatus('Không thể lưu cấu hình giảm giá!', true);
-                return false;
-            }
-        }
-
-        // Function to save discount codes to localStorage
-        function saveDiscountCodesToLocalStorage() {
-            try {
-                localStorage.setItem('discountCodes', JSON.stringify(discountCodes));
-                debug('Saved discount codes to localStorage', discountCodes);
-                return true;
-            } catch (error) {
-                debug('Error saving discount codes to localStorage', error);
-                showStatus('Không thể lưu mã giảm giá!', true);
-                return false;
-            }
-        }
 
         // Function to check if a game is on sale based on global sale settings
         function isGameOnSale(game) {
@@ -1521,11 +1698,13 @@
         }
 
         // Function to delete a game
-        function deleteGame(gameId) {
+        async function deleteGame(gameId) {
             if (confirm('Bạn có chắc chắn muốn xóa game này?')) {
                 debug('Deleting game', gameId);
                 games = games.filter(game => game.id !== gameId);
-                if (saveGamesToLocalStorage()) {
+                
+                // Save changes
+                if (await saveStoreData()) {
                     // Update filtered games
                     const searchTerm = searchInput.value.trim().toLowerCase();
                     if (searchTerm !== '') {
@@ -1580,14 +1759,14 @@
         }
         
         // Function to restore original price for a game
-        function restoreOriginalPrice(gameId) {
+        async function restoreOriginalPrice(gameId) {
             debug('Restoring original price for game', gameId);
             const gameIndex = games.findIndex(game => game.id === gameId);
             
             if (gameIndex !== -1) {
                 games[gameIndex].price = games[gameIndex].originalPrice;
                 
-                if (saveGamesToLocalStorage()) {
+                if (await saveStoreData()) {
                     renderGamesList();
                     showStatus('Đã khôi phục giá gốc cho game!');
                 }
@@ -1595,12 +1774,12 @@
         }
         
         // Function to delete a discount code
-        function deleteDiscountCode(codeId) {
+        async function deleteDiscountCode(codeId) {
             if (confirm('Bạn có chắc chắn muốn xóa mã giảm giá này?')) {
                 debug('Deleting discount code', codeId);
                 discountCodes = discountCodes.filter(code => code.id !== codeId);
                 
-                if (saveDiscountCodesToLocalStorage()) {
+                if (await saveStoreData()) {
                     renderDiscountCodes();
                     showStatus('Đã xóa mã giảm giá thành công!');
                 }
@@ -1680,7 +1859,7 @@
         });
 
         // Confirm adding discount code
-        confirmAddCode.addEventListener('click', () => {
+        confirmAddCode.addEventListener('click', async () => {
             // Validate inputs
             const code = discountCode.value.trim();
             const amount = parseFloat(discountAmount.value);
@@ -1737,7 +1916,7 @@
             
             discountCodes.push(newCode);
             
-            if (saveDiscountCodesToLocalStorage()) {
+            if (await saveStoreData()) {
                 discountCodeModal.style.display = 'none';
                 renderDiscountCodes();
                 showStatus('Đã thêm mã giảm giá thành công!');
@@ -1745,7 +1924,7 @@
         });
 
         // Event listener for form submission
-        gameForm.addEventListener('submit', function(e) {
+        gameForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             debug('Form submitted');
 
@@ -1798,7 +1977,7 @@
                             image,
                             categories: selectedCategories
                         };
-                        if (saveGamesToLocalStorage()) {
+                        if (await saveStoreData()) {
                             showStatus('Game đã được cập nhật thành công!');
                         }
                     } else {
@@ -1848,7 +2027,7 @@
         });
 
         // Function to add a new game
-        function addNewGame(gameData) {
+        async function addNewGame(gameData) {
             const newId = games.length > 0 ? Math.max(...games.map(g => g.id)) + 1 : 1;
             const newGame = {
                 id: newId,
@@ -1858,7 +2037,7 @@
             debug('Adding new game', newGame);
             games.push(newGame);
             
-            if (saveGamesToLocalStorage()) {
+            if (await saveStoreData()) {
                 // Reset form
                 resetGameForm();
                 
@@ -1878,7 +2057,7 @@
         }
 
         // Event listener for sale config form submission
-        saleConfigForm.addEventListener('submit', function(e) {
+        saleConfigForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             debug('Sale config form submitted');
 
@@ -1929,7 +2108,7 @@
                 };
 
                 // Save sale config
-                if (saveSaleConfigToLocalStorage()) {
+                if (await saveStoreData()) {
                     renderGamesList();
                     showStatus('Cấu hình giảm giá đã được lưu thành công!');
                 }
@@ -1940,7 +2119,7 @@
         });
 
         // Apply sale to all eligible games
-        applyAllBtn.addEventListener('click', function() {
+        applyAllBtn.addEventListener('click', async function() {
             if (confirm('Bạn có chắc chắn muốn áp dụng cấu hình giảm giá cho tất cả game thỏa mãn điều kiện?')) {
                 debug('Applying sale config to eligible games');
                 
@@ -1965,7 +2144,7 @@
                     }
                 });
                 
-                if (saveGamesToLocalStorage()) {
+                if (await saveStoreData()) {
                     renderGamesList();
                     showStatus(`Đã áp dụng giảm giá cho ${countUpdated} game!`);
                 }
@@ -1973,7 +2152,7 @@
         });
 
         // Restore all games to original prices
-        restoreAllBtn.addEventListener('click', function() {
+        restoreAllBtn.addEventListener('click', async function() {
             if (confirm('Bạn có chắc chắn muốn khôi phục giá gốc cho tất cả game?')) {
                 debug('Restoring original prices for all games');
                 
@@ -1986,7 +2165,7 @@
                     }
                 });
                 
-                if (saveGamesToLocalStorage()) {
+                if (await saveStoreData()) {
                     renderGamesList();
                     showStatus(`Đã khôi phục giá gốc cho ${countUpdated} game!`);
                 }
@@ -1994,15 +2173,17 @@
         });
 
         // Clear storage and reset games
-        clearStorageBtn.addEventListener('click', function() {
+        clearStorageBtn.addEventListener('click', async function() {
             if (confirm('Bạn có chắc chắn muốn xóa TẤT CẢ dữ liệu game? Hành động này không thể hoàn tác!')) {
                 try {
-                    localStorage.removeItem('games');
                     games = [];
                     filteredGames = [];
-                    renderGamesList();
-                    debug('All data cleared');
-                    showStatus('Đã xóa tất cả dữ liệu!');
+                    
+                    if (await saveStoreData()) {
+                        renderGamesList();
+                        debug('All data cleared');
+                        showStatus('Đã xóa tất cả dữ liệu!');
+                    }
                 } catch (error) {
                     debug('Error clearing data', error);
                     showStatus('Có lỗi khi xóa dữ liệu!', true);
@@ -2178,7 +2359,7 @@
         });
         
         // Import games button click handler
-        importGamesBtn.addEventListener('click', function() {
+        importGamesBtn.addEventListener('click', async function() {
             debug('Import button clicked', parsedGames);
             if (parsedGames.length === 0) {
                 showStatus('Không có game nào để nhập.', true);
@@ -2226,10 +2407,10 @@
                 // Add all games at once
                 games = [...games, ...gamesToAdd];
                 
-                // Save to localStorage
-                if (saveGamesToLocalStorage()) {
+                // Save to cloud storage
+                if (await saveStoreData()) {
                     // Update filtered games
-                    filteredGames = games;
+                    filteredGames = [...games];
                     
                     // Render updated games list
                     renderGamesList();
