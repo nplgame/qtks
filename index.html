@@ -618,7 +618,7 @@
     </footer>
 
     <script>
-       // Variables
+      // Variables
 let games = [];
 let filteredGames = [];
 let currentPage = 1;
@@ -684,6 +684,9 @@ function loadGames() {
             // Load sale config
             loadSaleConfig();
             
+            // Áp dụng giảm giá cho games
+            applyDiscountsToGames();
+            
             // Apply initial filtering
             applyFilters();
         } else {
@@ -713,6 +716,35 @@ function loadSaleConfig() {
     } catch (error) {
         console.error('Error loading sale config:', error);
     }
+}
+
+// Thêm hàm này để áp dụng giảm giá cho mỗi game khi tải trang
+function applyDiscountsToGames() {
+    games.forEach(game => {
+        // Kiểm tra game có đủ điều kiện áp dụng chương trình giảm giá toàn cục
+        if (isGameOnSale(game)) {
+            // Nếu giá chưa được giảm, thực hiện giảm giá
+            if (game.price === game.originalPrice) {
+                // Tính toán giá giảm dựa trên loại giảm giá
+                if (saleConfig.type === 'fixed') {
+                    game.price = Math.min(game.originalPrice, saleConfig.salePrice);
+                } else {
+                    // Tính toán phần trăm giảm giá
+                    const discountAmount = Math.round(game.originalPrice * (saleConfig.salePercent / 100));
+                    game.price = Math.max(1, game.originalPrice - discountAmount);
+                }
+            }
+        } else {
+            // Kiểm tra mã giảm giá có thể áp dụng
+            const discountCode = getApplicableDiscountCode(game);
+            if (discountCode) {
+                game.price = calculateDiscountedPrice(game.originalPrice, discountCode);
+            }
+        }
+    });
+    
+    console.log('Applied discounts to games. Games on sale:', 
+                games.filter(g => g.price !== g.originalPrice).length);
 }
 
 // Check if a game is eligible for the global sale
