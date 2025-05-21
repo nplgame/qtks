@@ -14,6 +14,8 @@
             --card-bg: #2d3748;
             --price-color: #a855f7;
             --sale-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
         }
 
         * {
@@ -122,6 +124,10 @@
             background-color: #27ae60;
         }
 
+        .btn-restore {
+            background-color: #3498db;
+        }
+
         .category-checkboxes {
             display: flex;
             flex-wrap: wrap;
@@ -158,6 +164,7 @@
         .game-details {
             display: flex;
             flex-direction: column;
+            flex: 1;
         }
 
         .game-title {
@@ -166,6 +173,11 @@
 
         .game-price {
             margin-top: 5px;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 5px;
         }
 
         .price-original {
@@ -187,6 +199,10 @@
             border-radius: 3px;
             font-size: 0.8em;
             margin-left: 5px;
+        }
+
+        .discount-code {
+            background-color: var(--warning-color);
         }
 
         .back-link {
@@ -216,6 +232,11 @@
 
         .tab.active {
             background-color: var(--card-bg);
+        }
+
+        .sub-tabs {
+            display: flex;
+            margin: 10px 0 20px;
         }
 
         #csvPreview, #textPreview {
@@ -267,7 +288,7 @@
             font-family: monospace;
         }
 
-        /* Thêm CSS cho màn hình loading */
+        /* Auth Overlay */
         .auth-overlay {
             position: fixed;
             top: 0;
@@ -337,13 +358,260 @@
             cursor: not-allowed;
             opacity: 0.6;
         }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .modal-close {
+            cursor: pointer;
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-light);
+        }
+
+        .modal-body {
+            margin-bottom: 15px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .discount-code-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--dark-bg);
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+        }
+
+        .discount-code-info {
+            flex: 1;
+        }
+
+        .discount-type {
+            display: flex;
+            gap: 15px;
+        }
+
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .code-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .visual-indicator {
+            height: 8px;
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 4px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .indicator-fill {
+            height: 100%;
+            background-color: var(--success-color);
+        }
+
+        .discount-percent {
+            background-color: var(--warning-color);
+        }
+
+        .range-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: #ccc;
+            margin-top: 3px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--dark-bg);
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--success-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .small-tag {
+            font-size: 0.7em;
+            padding: 2px 5px;
+            border-radius: 3px;
+            background-color: var(--dark-bg);
+            margin-left: 5px;
+        }
+
+        .sale-config-panels {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .config-panel {
+            flex: 1;
+            background-color: var(--dark-bg);
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .original-tag {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 0.7em;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
-    <!-- Màn hình xác thực -->
+    <!-- Auth Overlay -->
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-message">Đang kiểm tra đăng nhập...</div>
         <div class="spinner"></div>
+    </div>
+
+    <!-- Duplicate Game Modal -->
+    <div id="duplicateModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Game Trùng Lặp</div>
+                <button class="modal-close" id="closeDuplicateModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Game "<span id="duplicateGameName"></span>" đã tồn tại trong hệ thống!</p>
+                <p>Bạn có muốn thêm game này không?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-delete" id="cancelAddDuplicate">Hủy</button>
+                <button class="btn" id="confirmAddDuplicate">Thêm Dù Có Trùng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Discount Code Modal -->
+    <div id="discountCodeModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Thêm Mã Giảm Giá</div>
+                <button class="modal-close" id="closeCodeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="discountCode">Mã giảm giá</label>
+                    <input type="text" id="discountCode" class="form-control" placeholder="VD: SUMMER2023">
+                </div>
+                <div class="form-group">
+                    <label for="discountAmount">Giá trị giảm giá</label>
+                    <input type="number" id="discountAmount" class="form-control" placeholder="Nhập số tiền hoặc phần trăm">
+                </div>
+                <div class="form-group">
+                    <label>Loại giảm giá</label>
+                    <div class="discount-type">
+                        <div class="radio-group">
+                            <input type="radio" id="discountTypeFixed" name="discountType" value="fixed" checked>
+                            <label for="discountTypeFixed">VND</label>
+                        </div>
+                        <div class="radio-group">
+                            <input type="radio" id="discountTypePercent" name="discountType" value="percent">
+                            <label for="discountTypePercent">Phần trăm (%)</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="discountMinPrice">Giá tối thiểu để áp dụng (VND)</label>
+                    <input type="number" id="discountMinPrice" class="form-control" placeholder="Để trống nếu không giới hạn">
+                </div>
+                <div class="form-group">
+                    <label for="discountMaxPrice">Giá tối đa để áp dụng (VND)</label>
+                    <input type="number" id="discountMaxPrice" class="form-control" placeholder="Để trống nếu không giới hạn">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-delete" id="cancelAddCode">Hủy</button>
+                <button class="btn" id="confirmAddCode">Thêm Mã</button>
+            </div>
+        </div>
     </div>
 
     <header>
@@ -365,6 +633,7 @@
             <div class="tab" data-tab="sale">Cấu Hình Giảm Giá</div>
         </div>
 
+        <!-- Single Game Tab -->
         <div id="singleGameTab" class="admin-form">
             <form id="gameForm">
                 <input type="hidden" id="gameId" value="">
@@ -412,6 +681,7 @@
             </form>
         </div>
 
+        <!-- Bulk Import Tab -->
         <div id="bulkImportTab" class="bulk-import-form" style="display:none;">
             <div class="tabs">
                 <div class="tab active" data-bulk-tab="csv">Nhập từ CSV</div>
@@ -444,31 +714,106 @@
             <button id="importGamesBtn" class="btn btn-import" style="display:none;">Nhập Game Hàng Loạt</button>
         </div>
 
-        <!-- Thêm tab cấu hình giảm giá -->
+        <!-- Sale Config Tab -->
         <div id="saleConfigTab" class="sale-config-form" style="display:none;">
-            <h2>Cấu Hình Giảm Giá</h2>
-            <form id="saleConfigForm">
-                <div class="form-group">
-                    <label for="saleThreshold">Ngưỡng giá áp dụng (VND)</label>
-                    <input type="number" id="saleThreshold" class="form-control" value="1000000" placeholder="Ví dụ: 1000000">
-                    <small>Áp dụng giảm giá cho các game có giá từ ngưỡng này trở lên</small>
-                </div>
+            <div class="sub-tabs">
+                <div class="tab active" data-sale-tab="global">Cài Đặt Giảm Giá Chung</div>
+                <div class="tab" data-sale-tab="codes">Quản Lý Mã Giảm Giá</div>
+            </div>
 
-                <div class="form-group">
-                    <label for="salePrice">Giá sau khuyến mãi (VND)</label>
-                    <input type="number" id="salePrice" class="form-control" value="199000" placeholder="Ví dụ: 199000">
-                </div>
+            <!-- Global Sale Settings -->
+            <div id="globalSaleSection">
+                <h2>Cấu Hình Giảm Giá Chung</h2>
+                <form id="saleConfigForm">
+                    <div class="sale-config-panels">
+                        <div class="config-panel">
+                            <div class="form-group">
+                                <label for="saleType">Loại giảm giá</label>
+                                <select id="saleType" class="form-control">
+                                    <option value="fixed">Giá cố định</option>
+                                    <option value="percent">Phần trăm</option>
+                                </select>
+                            </div>
 
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="saleEnabled" checked>
-                        Bật chương trình giảm giá
-                    </label>
-                </div>
+                            <div id="fixedPriceSection">
+                                <div class="form-group">
+                                    <label for="salePrice">Giá sau khuyến mãi (VND)</label>
+                                    <input type="number" id="salePrice" class="form-control" value="199000" placeholder="Ví dụ: 199000">
+                                </div>
+                            </div>
 
-                <button type="submit" class="btn">Lưu Cấu Hình</button>
-                <button type="button" id="applyAllBtn" class="btn btn-import">Áp Dụng Cho Tất Cả Game</button>
-            </form>
+                            <div id="percentageSection" style="display:none;">
+                                <div class="form-group">
+                                    <label for="salePercent">Phần trăm giảm giá (%)</label>
+                                    <input type="number" id="salePercent" class="form-control" value="30" min="1" max="100" placeholder="Ví dụ: 30">
+                                    <div class="visual-indicator">
+                                        <div class="indicator-fill discount-percent" style="width: 30%;"></div>
+                                    </div>
+                                    <div class="range-display">
+                                        <span>0%</span>
+                                        <span>50%</span>
+                                        <span>100%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="config-panel">
+                            <div class="form-group">
+                                <label>Áp dụng cho khoảng giá</label>
+                                
+                                <div class="form-group">
+                                    <label for="saleMinThreshold">Giá tối thiểu (VND)</label>
+                                    <input type="number" id="saleMinThreshold" class="form-control" value="0" placeholder="Ví dụ: 100000">
+                                </div>
+                                <div class="form-group">
+                                    <label for="saleMaxThreshold">Giá tối đa (VND)</label>
+                                    <input type="number" id="saleMaxThreshold" class="form-control" value="10000000" placeholder="Để trống nếu không giới hạn">
+                                </div>
+                                
+                                <div class="visual-indicator">
+                                    <div class="indicator-fill" style="width: 60%;"></div>
+                                </div>
+                                <div class="range-display">
+                                    <span>0</span>
+                                    <span>500k</span>
+                                    <span>≥1M</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="saleEnabled">
+                                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                                        <span>Bật chương trình giảm giá</span>
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" id="saleEnabled" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <button type="submit" class="btn">Lưu Cấu Hình</button>
+                        <button type="button" id="applyAllBtn" class="btn btn-import">Áp Dụng Cho Tất Cả Game</button>
+                        <button type="button" id="restoreAllBtn" class="btn btn-restore">Khôi Phục Giá Gốc</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Discount Codes Management -->
+            <div id="discountCodesSection" style="display:none;">
+                <h2>Quản Lý Mã Giảm Giá</h2>
+                <div class="form-group">
+                    <button id="addDiscountCodeBtn" class="btn">Thêm Mã Giảm Giá Mới</button>
+                </div>
+                
+                <div id="discountCodesList" class="code-list">
+                    <!-- Discount codes will be listed here -->
+                </div>
+            </div>
         </div>
 
         <!-- Search Box -->
@@ -478,6 +823,7 @@
             </div>
         </div>
 
+        <!-- Games List -->
         <div class="games-list" id="gamesList">
             <h2>Danh Sách Game Hiện Tại</h2>
             <!-- Games will be dynamically listed here -->
@@ -488,6 +834,7 @@
             </div>
         </div>
 
+        <!-- Debug Area -->
         <div class="debug-area" id="debugArea" style="display:none;">
             <h3>Debug Information</h3>
             <pre id="debugOutput"></pre>
@@ -503,35 +850,31 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script>
-        // Kiểm tra xác thực khi trang được tải
+        // Authentication check
         function checkAuth() {
             const authData = JSON.parse(localStorage.getItem('adminAuth') || '{}');
             
-            // Kiểm tra xem đã đăng nhập và phiên chưa hết hạn
+            // Check if logged in and session not expired
             if (!authData.isLoggedIn || authData.expiry <= Date.now()) {
-                // Nếu chưa đăng nhập hoặc phiên đã hết hạn, chuyển hướng đến trang đăng nhập
                 window.location.href = 'login.html';
                 return false;
             }
             
-            // Hiển thị tên người dùng
+            // Show username
             document.getElementById('username').textContent = `Xin chào, ${authData.username}`;
             
-            // Ẩn overlay xác thực
+            // Hide auth overlay
             document.getElementById('authOverlay').style.display = 'none';
             
             return true;
         }
         
-        // Kiểm tra xác thực khi trang tải
-        setTimeout(checkAuth, 1000); // Chậm 1 giây để hiển thị animation
+        // Check auth on page load
+        setTimeout(checkAuth, 1000);
         
-        // Xử lý đăng xuất
+        // Handle logout
         document.getElementById('logoutBtn').addEventListener('click', function() {
-            // Xóa thông tin xác thực
             localStorage.removeItem('adminAuth');
-            
-            // Chuyển hướng đến trang đăng nhập
             window.location.href = 'login.html';
         });
 
@@ -569,6 +912,7 @@
                     id: 1,
                     title: "The First Berserker: Khazan",
                     price: 49000,
+                    originalPrice: 49000,
                     image: "https://via.placeholder.com/300x150?text=Khazan",
                     categories: ["action", "rpg"]
                 },
@@ -576,6 +920,7 @@
                     id: 2,
                     title: "Black Myth: Wukong",
                     price: 49000,
+                    originalPrice: 49000,
                     image: "https://via.placeholder.com/300x150?text=Wukong",
                     categories: ["action", "rpg"]
                 },
@@ -583,10 +928,19 @@
                     id: 3,
                     title: "Marvel's Spider-Man 2",
                     price: 49000,
+                    originalPrice: 49000,
                     image: "https://via.placeholder.com/300x150?text=Spider-Man+2",
                     categories: ["action", "hot"]
                 }
             ];
+            
+            // Ensure all games have originalPrice property
+            games.forEach(game => {
+                if (!game.hasOwnProperty('originalPrice')) {
+                    game.originalPrice = game.price;
+                }
+            });
+            
             debug('Initialized games', games);
         } catch (error) {
             debug('Error initializing games', error);
@@ -597,16 +951,31 @@
         // Initialize sale configuration
         let saleConfig = {
             enabled: true,
-            threshold: 1000000,
-            salePrice: 199000
+            minThreshold: 0,
+            maxThreshold: 10000000,
+            type: 'fixed',
+            salePrice: 199000,
+            salePercent: 30
         };
 
         try {
             const storedSaleConfig = localStorage.getItem('saleConfig');
             if (storedSaleConfig) {
                 saleConfig = JSON.parse(storedSaleConfig);
+                // Ensure backward compatibility
+                if (!saleConfig.hasOwnProperty('minThreshold')) {
+                    saleConfig.minThreshold = 0;
+                }
+                if (!saleConfig.hasOwnProperty('maxThreshold')) {
+                    saleConfig.maxThreshold = 10000000;
+                }
+                if (!saleConfig.hasOwnProperty('type')) {
+                    saleConfig.type = 'fixed';
+                }
+                if (!saleConfig.hasOwnProperty('salePercent')) {
+                    saleConfig.salePercent = 30;
+                }
             } else {
-                // Lưu cấu hình khuyến mãi mặc định
                 localStorage.setItem('saleConfig', JSON.stringify(saleConfig));
             }
             debug('Initialized sale config', saleConfig);
@@ -614,36 +983,38 @@
             debug('Error initializing sale config', error);
         }
 
-        // Tab switching
-        const tabs = document.querySelectorAll('.tab[data-tab]');
-        const singleGameTab = document.getElementById('singleGameTab');
-        const bulkImportTab = document.getElementById('bulkImportTab');
-        const saleConfigTab = document.getElementById('saleConfigTab');
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active class from all tabs
-                tabs.forEach(t => t.classList.remove('active'));
-                
-                // Add active class to clicked tab
-                tab.classList.add('active');
-                
-                // Show/hide corresponding tab content
-                if (tab.dataset.tab === 'single') {
-                    singleGameTab.style.display = 'block';
-                    bulkImportTab.style.display = 'none';
-                    saleConfigTab.style.display = 'none';
-                } else if (tab.dataset.tab === 'bulk') {
-                    singleGameTab.style.display = 'none';
-                    bulkImportTab.style.display = 'block';
-                    saleConfigTab.style.display = 'none';
-                } else if (tab.dataset.tab === 'sale') {
-                    singleGameTab.style.display = 'none';
-                    bulkImportTab.style.display = 'none';
-                    saleConfigTab.style.display = 'block';
-                }
-            });
-        });
+        // Initialize discount codes
+        let discountCodes = [];
+        try {
+            const storedCodes = localStorage.getItem('discountCodes');
+            if (storedCodes) {
+                discountCodes = JSON.parse(storedCodes);
+            } else {
+                discountCodes = [
+                    {
+                        id: 1,
+                        code: "SUMMER2023",
+                        amount: 50000,
+                        type: "fixed", // "fixed" or "percent"
+                        minPrice: 100000,
+                        maxPrice: null
+                    },
+                    {
+                        id: 2,
+                        code: "WELCOME20",
+                        amount: 20,
+                        type: "percent",
+                        minPrice: 0,
+                        maxPrice: 500000
+                    }
+                ];
+                localStorage.setItem('discountCodes', JSON.stringify(discountCodes));
+            }
+            debug('Initialized discount codes', discountCodes);
+        } catch (error) {
+            debug('Error initializing discount codes', error);
+            discountCodes = [];
+        }
 
         // DOM Elements
         const gameForm = document.getElementById('gameForm');
@@ -664,15 +1035,155 @@
         
         // Sale config elements
         const saleConfigForm = document.getElementById('saleConfigForm');
-        const saleThresholdInput = document.getElementById('saleThreshold');
+        const saleMinThresholdInput = document.getElementById('saleMinThreshold');
+        const saleMaxThresholdInput = document.getElementById('saleMaxThreshold');
         const salePriceInput = document.getElementById('salePrice');
+        const salePercentInput = document.getElementById('salePercent');
+        const saleTypeSelect = document.getElementById('saleType');
+        const fixedPriceSection = document.getElementById('fixedPriceSection');
+        const percentageSection = document.getElementById('percentageSection');
         const saleEnabledCheckbox = document.getElementById('saleEnabled');
         const applyAllBtn = document.getElementById('applyAllBtn');
+        const restoreAllBtn = document.getElementById('restoreAllBtn');
 
-        // Populate sale config form
-        saleThresholdInput.value = saleConfig.threshold;
-        salePriceInput.value = saleConfig.salePrice;
-        saleEnabledCheckbox.checked = saleConfig.enabled;
+        // Modal elements
+        const duplicateModal = document.getElementById('duplicateModal');
+        const duplicateGameName = document.getElementById('duplicateGameName');
+        const closeDuplicateModal = document.getElementById('closeDuplicateModal');
+        const cancelAddDuplicate = document.getElementById('cancelAddDuplicate');
+        const confirmAddDuplicate = document.getElementById('confirmAddDuplicate');
+
+        // Discount code modal elements
+        const discountCodeModal = document.getElementById('discountCodeModal');
+        const discountCode = document.getElementById('discountCode');
+        const discountAmount = document.getElementById('discountAmount');
+        const discountTypeFixed = document.getElementById('discountTypeFixed');
+        const discountTypePercent = document.getElementById('discountTypePercent');
+        const discountMinPrice = document.getElementById('discountMinPrice');
+        const discountMaxPrice = document.getElementById('discountMaxPrice');
+        const closeCodeModal = document.getElementById('closeCodeModal');
+        const cancelAddCode = document.getElementById('cancelAddCode');
+        const confirmAddCode = document.getElementById('confirmAddCode');
+
+        // Sale tab switching
+        const saleTabs = document.querySelectorAll('[data-sale-tab]');
+        const globalSaleSection = document.getElementById('globalSaleSection');
+        const discountCodesSection = document.getElementById('discountCodesSection');
+        const addDiscountCodeBtn = document.getElementById('addDiscountCodeBtn');
+        const discountCodesList = document.getElementById('discountCodesList');
+
+        // Bulk import tab switching
+        const bulkTabs = document.querySelectorAll('[data-bulk-tab]');
+        const csvImportSection = document.getElementById('csvImportSection');
+        const textImportSection = document.getElementById('textImportSection');
+        const gamesListInput = document.getElementById('gamesListInput');
+        const textPreview = document.getElementById('textPreview');
+
+        // DOM Elements for search and pagination
+        const searchInput = document.getElementById('searchInput');
+        const pagination = document.getElementById('pagination');
+        
+        // Variables for duplicate game handling
+        let pendingGame = null;
+        let duplicateAction = null;
+        
+        // Pagination variables
+        let currentPage = 1;
+        const gamesPerPage = 10;
+        let filteredGames = [...games];
+        let currentBulkMode = 'csv';
+        let parsedGames = [];
+
+        // Initialize the page
+        function init() {
+            // Populate sale config form
+            saleTypeSelect.value = saleConfig.type;
+            saleMinThresholdInput.value = saleConfig.minThreshold;
+            saleMaxThresholdInput.value = saleConfig.maxThreshold;
+            salePriceInput.value = saleConfig.salePrice;
+            salePercentInput.value = saleConfig.salePercent;
+            saleEnabledCheckbox.checked = saleConfig.enabled;
+            
+            // Update view based on sale type
+            if (saleConfig.type === 'fixed') {
+                fixedPriceSection.style.display = 'block';
+                percentageSection.style.display = 'none';
+            } else {
+                fixedPriceSection.style.display = 'none';
+                percentageSection.style.display = 'block';
+            }
+            
+            // Update discount percent visual
+            document.querySelector('.indicator-fill.discount-percent').style.width = saleConfig.salePercent + '%';
+            
+            // Render game list and discount codes
+            renderGamesList();
+            renderDiscountCodes();
+        }
+
+        // Tab switching
+        const tabs = document.querySelectorAll('.tab[data-tab]');
+        const singleGameTab = document.getElementById('singleGameTab');
+        const bulkImportTab = document.getElementById('bulkImportTab');
+        const saleConfigTab = document.getElementById('saleConfigTab');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                if (tab.dataset.tab === 'single') {
+                    singleGameTab.style.display = 'block';
+                    bulkImportTab.style.display = 'none';
+                    saleConfigTab.style.display = 'none';
+                } else if (tab.dataset.tab === 'bulk') {
+                    singleGameTab.style.display = 'none';
+                    bulkImportTab.style.display = 'block';
+                    saleConfigTab.style.display = 'none';
+                } else if (tab.dataset.tab === 'sale') {
+                    singleGameTab.style.display = 'none';
+                    bulkImportTab.style.display = 'none';
+                    saleConfigTab.style.display = 'block';
+                }
+            });
+        });
+
+        // Sale tab switching
+        saleTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                saleTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                if (tab.dataset.saleTab === 'global') {
+                    globalSaleSection.style.display = 'block';
+                    discountCodesSection.style.display = 'none';
+                } else if (tab.dataset.saleTab === 'codes') {
+                    globalSaleSection.style.display = 'none';
+                    discountCodesSection.style.display = 'block';
+                }
+            });
+        });
+
+        // Bulk import tab switching
+        bulkTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                bulkTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentBulkMode = tab.dataset.bulkTab;
+                
+                if (currentBulkMode === 'csv') {
+                    csvImportSection.style.display = 'block';
+                    textImportSection.style.display = 'none';
+                } else {
+                    csvImportSection.style.display = 'none';
+                    textImportSection.style.display = 'block';
+                }
+                
+                csvPreview.innerHTML = '';
+                textPreview.innerHTML = '';
+                importGamesBtn.style.display = 'none';
+            });
+        });
 
         // Toggle debug panel visibility
         toggleDebugBtn.addEventListener('click', () => {
@@ -683,6 +1194,23 @@
                 debugArea.style.display = 'none';
                 toggleDebugBtn.textContent = 'Hiện Thông Tin Debug';
             }
+        });
+
+        // Toggle price type in sale config
+        saleTypeSelect.addEventListener('change', function() {
+            if (this.value === 'fixed') {
+                fixedPriceSection.style.display = 'block';
+                percentageSection.style.display = 'none';
+            } else {
+                fixedPriceSection.style.display = 'none';
+                percentageSection.style.display = 'block';
+            }
+        });
+
+        // Update discount percent visual
+        salePercentInput.addEventListener('input', function() {
+            const value = Math.min(100, Math.max(0, parseInt(this.value) || 0));
+            document.querySelector('.indicator-fill.discount-percent').style.width = value + '%';
         });
 
         // Function to save games to localStorage
@@ -711,17 +1239,65 @@
             }
         }
 
-        // Function to check if a game is on sale
-        function isGameOnSale(game) {
-            return saleConfig.enabled && game.price >= saleConfig.threshold;
+        // Function to save discount codes to localStorage
+        function saveDiscountCodesToLocalStorage() {
+            try {
+                localStorage.setItem('discountCodes', JSON.stringify(discountCodes));
+                debug('Saved discount codes to localStorage', discountCodes);
+                return true;
+            } catch (error) {
+                debug('Error saving discount codes to localStorage', error);
+                showStatus('Không thể lưu mã giảm giá!', true);
+                return false;
+            }
         }
 
-        // Function to get the sale price for a game
+        // Function to check if a game is on sale based on global sale settings
+        function isGameOnSale(game) {
+            return saleConfig.enabled && 
+                   game.price >= saleConfig.minThreshold && 
+                   (saleConfig.maxThreshold === null || saleConfig.maxThreshold === 0 || game.price <= saleConfig.maxThreshold);
+        }
+
+        // Function to get the sale price for a game based on global settings
         function getGameSalePrice(game) {
             if (isGameOnSale(game)) {
-                return saleConfig.salePrice;
+                if (saleConfig.type === 'fixed') {
+                    return saleConfig.salePrice;
+                } else {
+                    // Calculate percentage discount
+                    const discountAmount = Math.round(game.originalPrice * (saleConfig.salePercent / 100));
+                    return Math.max(1, game.originalPrice - discountAmount);
+                }
             }
             return game.price;
+        }
+
+        // Function to get applicable discount code for a game
+        function getApplicableDiscountCode(game) {
+            if (!discountCodes || discountCodes.length === 0) return null;
+            
+            // Find a valid discount code for this game
+            for (const code of discountCodes) {
+                if (game.originalPrice >= (code.minPrice || 0) && 
+                    (code.maxPrice === null || code.maxPrice === 0 || game.originalPrice <= code.maxPrice)) {
+                    return code;
+                }
+            }
+            
+            return null;
+        }
+
+        // Function to calculate price with discount code applied
+        function calculateDiscountedPrice(originalPrice, discountCode) {
+            if (!discountCode) return originalPrice;
+            
+            if (discountCode.type === 'fixed') {
+                return Math.max(1, originalPrice - discountCode.amount);
+            } else {
+                const discountAmount = Math.round(originalPrice * (discountCode.amount / 100));
+                return Math.max(1, originalPrice - discountAmount);
+            }
         }
 
         // Function to format price with thousands separator
@@ -734,15 +1310,6 @@
             return games.some(game => game.title.toLowerCase() === title.toLowerCase());
         }
 
-        // DOM Elements for search and pagination
-        const searchInput = document.getElementById('searchInput');
-        const pagination = document.getElementById('pagination');
-        
-        // Pagination variables
-        let currentPage = 1;
-        const gamesPerPage = 10;
-        let filteredGames = [...games];
-        
         // Search games
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.trim().toLowerCase();
@@ -759,6 +1326,40 @@
             currentPage = 1;
             renderGamesList();
         });
+
+        // Function to render the list of discount codes
+        function renderDiscountCodes() {
+            if (!discountCodes || discountCodes.length === 0) {
+                discountCodesList.innerHTML = '<p>Chưa có mã giảm giá nào.</p>';
+                return;
+            }
+            
+            const codesHTML = discountCodes.map(code => {
+                const amountText = code.type === 'fixed' 
+                    ? `${formatPrice(code.amount)} VND` 
+                    : `${code.amount}%`;
+                
+                const priceRangeText = code.minPrice && code.maxPrice 
+                    ? `Áp dụng cho giá từ ${formatPrice(code.minPrice)} đến ${formatPrice(code.maxPrice)} VND`
+                    : code.minPrice 
+                        ? `Áp dụng cho giá từ ${formatPrice(code.minPrice)} VND trở lên`
+                        : code.maxPrice 
+                            ? `Áp dụng cho giá đến ${formatPrice(code.maxPrice)} VND`
+                            : 'Áp dụng cho tất cả các mức giá';
+                
+                return `
+                <div class="discount-code-item">
+                    <div class="discount-code-info">
+                        <div><strong>${code.code}</strong> - Giảm ${amountText}</div>
+                        <div><small>${priceRangeText}</small></div>
+                    </div>
+                    <button onclick="deleteDiscountCode(${code.id})" class="btn btn-delete">Xóa</button>
+                </div>
+                `;
+            }).join('');
+            
+            discountCodesList.innerHTML = codesHTML;
+        }
 
         // Function to render the list of games with pagination
         function renderGamesList() {
@@ -785,9 +1386,37 @@
             // Generate game list HTML
             const gamesListContent = currentGames.map(game => {
                 const isOnSale = isGameOnSale(game);
-                const displayPrice = isOnSale 
-                    ? `<span class="price-original">${formatPrice(game.price)}</span><span class="price-sale">${formatPrice(getGameSalePrice(game))}</span> VND <span class="sale-label">Sale</span>` 
-                    : `${formatPrice(game.price)} VND`;
+                const hasOriginalPrice = game.originalPrice !== game.price;
+                const applicableDiscountCode = getApplicableDiscountCode(game);
+                
+                let displayPrice = '';
+                
+                if (isOnSale) {
+                    // Global sale price
+                    const salePrice = getGameSalePrice(game);
+                    displayPrice = `
+                        <span class="price-original">${formatPrice(game.originalPrice)}</span>
+                        <span class="price-sale">${formatPrice(salePrice)}</span> VND 
+                        <span class="sale-label">Sale</span>
+                    `;
+                } else if (applicableDiscountCode) {
+                    // Discount code price
+                    const discountedPrice = calculateDiscountedPrice(game.originalPrice, applicableDiscountCode);
+                    displayPrice = `
+                        <span class="price-original">${formatPrice(game.originalPrice)}</span>
+                        <span class="price-sale">${formatPrice(discountedPrice)}</span> VND 
+                        <span class="sale-label discount-code">${applicableDiscountCode.code}</span>
+                    `;
+                } else if (hasOriginalPrice) {
+                    // Has original price but not eligible for any discounts
+                    displayPrice = `
+                        <span>${formatPrice(game.price)}</span> VND
+                        <span class="original-tag">Giá gốc: ${formatPrice(game.originalPrice)}</span>
+                    `;
+                } else {
+                    // Regular price
+                    displayPrice = `${formatPrice(game.price)} VND`;
+                }
                 
                 return `
                 <div class="game-item">
@@ -795,9 +1424,10 @@
                         <span class="game-title">${game.title}</span>
                         <span class="game-price">${displayPrice}</span>
                     </div>
-                    <div>
+                    <div class="game-actions">
                         <button onclick="editGame(${game.id})" class="btn btn-edit">Sửa</button>
                         <button onclick="deleteGame(${game.id})" class="btn btn-delete">Xóa</button>
+                        ${hasOriginalPrice ? `<button onclick="restoreOriginalPrice(${game.id})" class="btn btn-restore">Khôi phục</button>` : ''}
                     </div>
                 </div>
                 `;
@@ -948,15 +1578,170 @@
             // Switch to single game tab
             tabs[0].click();
         }
+        
+        // Function to restore original price for a game
+        function restoreOriginalPrice(gameId) {
+            debug('Restoring original price for game', gameId);
+            const gameIndex = games.findIndex(game => game.id === gameId);
+            
+            if (gameIndex !== -1) {
+                games[gameIndex].price = games[gameIndex].originalPrice;
+                
+                if (saveGamesToLocalStorage()) {
+                    renderGamesList();
+                    showStatus('Đã khôi phục giá gốc cho game!');
+                }
+            }
+        }
+        
+        // Function to delete a discount code
+        function deleteDiscountCode(codeId) {
+            if (confirm('Bạn có chắc chắn muốn xóa mã giảm giá này?')) {
+                debug('Deleting discount code', codeId);
+                discountCodes = discountCodes.filter(code => code.id !== codeId);
+                
+                if (saveDiscountCodesToLocalStorage()) {
+                    renderDiscountCodes();
+                    showStatus('Đã xóa mã giảm giá thành công!');
+                }
+            }
+        }
 
         // Cancel edit mode
         cancelEditBtn.addEventListener('click', () => {
-            // Reset form
+            resetGameForm();
+        });
+
+        // Reset game form
+        function resetGameForm() {
             gameForm.reset();
             gameIdInput.value = '';
             submitBtn.textContent = 'Thêm Game';
             cancelEditBtn.style.display = 'none';
             gameForm.classList.remove('edit-mode');
+        }
+
+        // Function to show duplicate game modal
+        function showDuplicateModal(gameTitle, callback) {
+            duplicateGameName.textContent = gameTitle;
+            duplicateModal.style.display = 'flex';
+            
+            duplicateAction = callback;
+        }
+
+        // Close duplicate game modal
+        closeDuplicateModal.addEventListener('click', () => {
+            duplicateModal.style.display = 'none';
+            duplicateAction = null;
+        });
+
+        // Cancel adding duplicate game
+        cancelAddDuplicate.addEventListener('click', () => {
+            duplicateModal.style.display = 'none';
+            duplicateAction = null;
+            showStatus('Đã hủy thêm game trùng lặp.');
+        });
+
+        // Confirm adding duplicate game
+        confirmAddDuplicate.addEventListener('click', () => {
+            duplicateModal.style.display = 'none';
+            
+            if (duplicateAction) {
+                duplicateAction(true);
+                duplicateAction = null;
+            }
+        });
+
+        // Function to show discount code modal
+        function showDiscountCodeModal() {
+            // Reset form
+            discountCode.value = '';
+            discountAmount.value = '';
+            discountTypeFixed.checked = true;
+            discountMinPrice.value = '';
+            discountMaxPrice.value = '';
+            
+            discountCodeModal.style.display = 'flex';
+        }
+
+        // Close discount code modal
+        closeCodeModal.addEventListener('click', () => {
+            discountCodeModal.style.display = 'none';
+        });
+
+        // Cancel adding discount code
+        cancelAddCode.addEventListener('click', () => {
+            discountCodeModal.style.display = 'none';
+        });
+
+        // Add discount code button
+        addDiscountCodeBtn.addEventListener('click', () => {
+            showDiscountCodeModal();
+        });
+
+        // Confirm adding discount code
+        confirmAddCode.addEventListener('click', () => {
+            // Validate inputs
+            const code = discountCode.value.trim();
+            const amount = parseFloat(discountAmount.value);
+            const type = discountTypeFixed.checked ? 'fixed' : 'percent';
+            const minPrice = discountMinPrice.value ? parseInt(discountMinPrice.value) : 0;
+            const maxPrice = discountMaxPrice.value ? parseInt(discountMaxPrice.value) : null;
+            
+            if (!code) {
+                showStatus('Vui lòng nhập mã giảm giá!', true);
+                return;
+            }
+            
+            if (isNaN(amount) || amount <= 0) {
+                showStatus('Giá trị giảm giá phải là số dương!', true);
+                return;
+            }
+            
+            if (type === 'percent' && amount > 100) {
+                showStatus('Phần trăm giảm giá không thể vượt quá 100%!', true);
+                return;
+            }
+            
+            if (minPrice < 0) {
+                showStatus('Giá tối thiểu không thể là số âm!', true);
+                return;
+            }
+            
+            if (maxPrice !== null && maxPrice <= 0) {
+                showStatus('Giá tối đa phải lớn hơn 0!', true);
+                return;
+            }
+            
+            if (maxPrice !== null && minPrice >= maxPrice) {
+                showStatus('Giá tối thiểu phải nhỏ hơn giá tối đa!', true);
+                return;
+            }
+            
+            // Check for duplicate code
+            if (discountCodes.some(c => c.code.toLowerCase() === code.toLowerCase())) {
+                showStatus('Mã giảm giá này đã tồn tại!', true);
+                return;
+            }
+            
+            // Add new discount code
+            const newId = discountCodes.length > 0 ? Math.max(...discountCodes.map(c => c.id)) + 1 : 1;
+            const newCode = {
+                id: newId,
+                code: code,
+                amount: amount,
+                type: type,
+                minPrice: minPrice,
+                maxPrice: maxPrice
+            };
+            
+            discountCodes.push(newCode);
+            
+            if (saveDiscountCodesToLocalStorage()) {
+                discountCodeModal.style.display = 'none';
+                renderDiscountCodes();
+                showStatus('Đã thêm mã giảm giá thành công!');
+            }
         });
 
         // Event listener for form submission
@@ -1002,10 +1787,14 @@
                     debug('Updating existing game', gameId);
                     const gameIndex = games.findIndex(game => game.id === parseInt(gameId));
                     if (gameIndex !== -1) {
+                        // Save original price if it's the first edit
+                        const originalPrice = games[gameIndex].originalPrice || games[gameIndex].price;
+                        
                         games[gameIndex] = {
                             id: parseInt(gameId),
                             title,
                             price,
+                            originalPrice,
                             image,
                             categories: selectedCategories
                         };
@@ -1016,44 +1805,77 @@
                         debug('Error: Game not found for update', gameId);
                         showStatus('Không tìm thấy game để cập nhật!', true);
                     }
+                    
+                    // Reset form
+                    resetGameForm();
+                    
+                    // Render updated games list
+                    renderGamesList();
                 } else {
                     // Add new game - check for duplicates
                     if (isDuplicateGame(title)) {
                         debug('Duplicate game detected', title);
-                        showStatus(`Game "${title}" đã tồn tại trong hệ thống!`, true);
-                        return;
-                    }
-                    
-                    // Add new game
-                    const newId = games.length > 0 ? Math.max(...games.map(g => g.id)) + 1 : 1;
-                    const newGame = {
-                        id: newId,
-                        title,
-                        price,
-                        image,
-                        categories: selectedCategories
-                    };
-                    debug('Adding new game', newGame);
-                    games.push(newGame);
-                    if (saveGamesToLocalStorage()) {
-                        showStatus('Thêm game mới thành công!');
+                        
+                        pendingGame = {
+                            title,
+                            price,
+                            originalPrice: price,
+                            image,
+                            categories: selectedCategories
+                        };
+                        
+                        showDuplicateModal(title, (confirm) => {
+                            if (confirm) {
+                                addNewGame(pendingGame);
+                                pendingGame = null;
+                            }
+                        });
+                    } else {
+                        // Add new game
+                        addNewGame({
+                            title,
+                            price,
+                            originalPrice: price,
+                            image,
+                            categories: selectedCategories
+                        });
                     }
                 }
-
-                // Render updated games list
-                renderGamesList();
-
-                // Reset form
-                gameForm.reset();
-                gameIdInput.value = '';
-                submitBtn.textContent = 'Thêm Game';
-                cancelEditBtn.style.display = 'none';
-                gameForm.classList.remove('edit-mode');
             } catch (error) {
                 debug('Error in form submission', error);
                 showStatus('Có lỗi xảy ra khi xử lý form!', true);
             }
         });
+
+        // Function to add a new game
+        function addNewGame(gameData) {
+            const newId = games.length > 0 ? Math.max(...games.map(g => g.id)) + 1 : 1;
+            const newGame = {
+                id: newId,
+                ...gameData
+            };
+            
+            debug('Adding new game', newGame);
+            games.push(newGame);
+            
+            if (saveGamesToLocalStorage()) {
+                // Reset form
+                resetGameForm();
+                
+                // Update filtered games and render list
+                if (searchInput.value.trim() === '') {
+                    filteredGames = [...games];
+                } else {
+                    const searchTerm = searchInput.value.trim().toLowerCase();
+                    if (newGame.title.toLowerCase().includes(searchTerm)) {
+                        filteredGames.push(newGame);
+                    }
+                }
+                
+                renderGamesList();
+                showStatus('Thêm game mới thành công!');
+            }
+        }
 
         // Event listener for sale config form submission
         saleConfigForm.addEventListener('submit', function(e) {
@@ -1062,27 +1884,47 @@
 
             try {
                 // Get form values
-                const threshold = parseInt(saleThresholdInput.value);
+                const minThreshold = parseInt(saleMinThresholdInput.value) || 0;
+                const maxThreshold = parseInt(saleMaxThresholdInput.value) || 0;
                 const salePrice = parseInt(salePriceInput.value);
+                const salePercent = parseInt(salePercentInput.value);
+                const saleType = saleTypeSelect.value;
                 const enabled = saleEnabledCheckbox.checked;
 
                 // Validate inputs
-                if (isNaN(threshold) || threshold <= 0) {
-                    debug('Validation error: Invalid threshold', threshold);
-                    showStatus('Ngưỡng giá phải là số dương!', true);
+                if (minThreshold < 0) {
+                    debug('Validation error: Invalid min threshold', minThreshold);
+                    showStatus('Ngưỡng giá tối thiểu không thể là số âm!', true);
                     return;
                 }
 
-                if (isNaN(salePrice) || salePrice <= 0) {
-                    debug('Validation error: Invalid sale price', salePrice);
-                    showStatus('Giá khuyến mãi phải là số dương!', true);
+                if (maxThreshold > 0 && minThreshold >= maxThreshold) {
+                    debug('Validation error: Min threshold >= max threshold', { min: minThreshold, max: maxThreshold });
+                    showStatus('Ngưỡng giá tối thiểu phải nhỏ hơn ngưỡng giá tối đa!', true);
                     return;
+                }
+
+                if (saleType === 'fixed') {
+                    if (isNaN(salePrice) || salePrice <= 0) {
+                        debug('Validation error: Invalid sale price', salePrice);
+                        showStatus('Giá khuyến mãi phải là số dương!', true);
+                        return;
+                    }
+                } else {
+                    if (isNaN(salePercent) || salePercent <= 0 || salePercent > 100) {
+                        debug('Validation error: Invalid sale percent', salePercent);
+                        showStatus('Phần trăm giảm giá phải từ 1% đến 100%!', true);
+                        return;
+                    }
                 }
 
                 // Update sale config
                 saleConfig = {
-                    threshold,
+                    minThreshold,
+                    maxThreshold: maxThreshold || null,
+                    type: saleType,
                     salePrice,
+                    salePercent,
                     enabled
                 };
 
@@ -1097,12 +1939,57 @@
             }
         });
 
-        // Apply sale to all games
+        // Apply sale to all eligible games
         applyAllBtn.addEventListener('click', function() {
-            if (confirm('Bạn có chắc chắn muốn áp dụng cấu hình giảm giá cho tất cả game?')) {
-                debug('Applying sale config to all games');
-                renderGamesList();
-                showStatus('Đã áp dụng cấu hình giảm giá cho tất cả game!');
+            if (confirm('Bạn có chắc chắn muốn áp dụng cấu hình giảm giá cho tất cả game thỏa mãn điều kiện?')) {
+                debug('Applying sale config to eligible games');
+                
+                let countUpdated = 0;
+                
+                games.forEach(game => {
+                    if (isGameOnSale(game)) {
+                        // Store original price if not already stored
+                        if (!game.hasOwnProperty('originalPrice') || game.originalPrice === game.price) {
+                            game.originalPrice = game.price;
+                        }
+                        
+                        // Update price based on sale type
+                        if (saleConfig.type === 'fixed') {
+                            game.price = saleConfig.salePrice;
+                        } else {
+                            const discountAmount = Math.round(game.originalPrice * (saleConfig.salePercent / 100));
+                            game.price = Math.max(1, game.originalPrice - discountAmount);
+                        }
+                        
+                        countUpdated++;
+                    }
+                });
+                
+                if (saveGamesToLocalStorage()) {
+                    renderGamesList();
+                    showStatus(`Đã áp dụng giảm giá cho ${countUpdated} game!`);
+                }
+            }
+        });
+
+        // Restore all games to original prices
+        restoreAllBtn.addEventListener('click', function() {
+            if (confirm('Bạn có chắc chắn muốn khôi phục giá gốc cho tất cả game?')) {
+                debug('Restoring original prices for all games');
+                
+                let countUpdated = 0;
+                
+                games.forEach(game => {
+                    if (game.hasOwnProperty('originalPrice') && game.originalPrice !== game.price) {
+                        game.price = game.originalPrice;
+                        countUpdated++;
+                    }
+                });
+                
+                if (saveGamesToLocalStorage()) {
+                    renderGamesList();
+                    showStatus(`Đã khôi phục giá gốc cho ${countUpdated} game!`);
+                }
             }
         });
 
@@ -1112,6 +1999,7 @@
                 try {
                     localStorage.removeItem('games');
                     games = [];
+                    filteredGames = [];
                     renderGamesList();
                     debug('All data cleared');
                     showStatus('Đã xóa tất cả dữ liệu!');
@@ -1122,44 +2010,6 @@
             }
         });
 
-        // =========== THÊM CODE CHO CHỨC NĂNG BULK IMPORT TEXT ==========
-        
-        // Additional variables for bulk text import
-        const bulkTabs = document.querySelectorAll('[data-bulk-tab]');
-        const csvImportSection = document.getElementById('csvImportSection');
-        const textImportSection = document.getElementById('textImportSection');
-        const gamesListInput = document.getElementById('gamesListInput');
-        const textPreview = document.getElementById('textPreview');
-        
-        let currentBulkMode = 'csv';
-        let parsedGames = [];
-        
-        // Switch between CSV and Text input in bulk import tab
-        bulkTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active class from all bulk tabs
-                bulkTabs.forEach(t => t.classList.remove('active'));
-                
-                // Add active class to clicked tab
-                tab.classList.add('active');
-                currentBulkMode = tab.dataset.bulkTab;
-                
-                // Show/hide corresponding sections
-                if (currentBulkMode === 'csv') {
-                    csvImportSection.style.display = 'block';
-                    textImportSection.style.display = 'none';
-                } else {
-                    csvImportSection.style.display = 'none';
-                    textImportSection.style.display = 'block';
-                }
-                
-                // Reset preview and button
-                csvPreview.innerHTML = '';
-                textPreview.innerHTML = '';
-                importGamesBtn.style.display = 'none';
-            });
-        });
-        
         // Process text input for bulk import
         gamesListInput.addEventListener('input', function() {
             parsedGames = [];
@@ -1195,6 +2045,7 @@
                             parsedGames.push({
                                 title,
                                 price,
+                                originalPrice: price,
                                 image,
                                 categories: ['other'] // Default category
                             });
@@ -1216,7 +2067,7 @@
             
             if (totalGames > 0) {
                 const duplicateNote = duplicates > 0 ? 
-                    `<p>Đã phát hiện ${duplicates} game trùng lặp. ${skipDuplicatesCheckbox.checked ? 'Sẽ bỏ qua các game trùng lặp.' : 'Xem lại trong danh sách.'}</p>` 
+                    `<p>Đã phát hiện ${duplicates} game trùng lặp. ${skipDuplicatesCheckbox.checked ? 'Sẽ bỏ qua các game trùng lặp.' : 'Sẽ hiển thị thông báo xác nhận khi nhập.'}</p>` 
                     : '';
                     
                 textPreview.innerHTML = `<h3>Xem trước (${validLines}/${totalGames} game hợp lệ):</h3>
@@ -1281,6 +2132,7 @@
                                     parsedGames.push({
                                         title: game.title,
                                         price: parseInt(game.price),
+                                        originalPrice: parseInt(game.price),
                                         image: game.image || `https://via.placeholder.com/300x150?text=${encodeURIComponent(game.title)}`,
                                         categories: game.categories ? game.categories.split(',') : ['other']
                                     });
@@ -1290,7 +2142,7 @@
                             tableHTML += '</tbody></table>';
                             
                             const duplicateNote = duplicates > 0 ? 
-                                `<p>Đã phát hiện ${duplicates} game trùng lặp. ${skipDuplicatesCheckbox.checked ? 'Sẽ bỏ qua các game trùng lặp.' : 'Xem lại trong danh sách.'}</p>` 
+                                `<p>Đã phát hiện ${duplicates} game trùng lặp. ${skipDuplicatesCheckbox.checked ? 'Sẽ bỏ qua các game trùng lặp.' : 'Sẽ hiển thị thông báo xác nhận khi nhập.'}</p>` 
                                 : '';
                                 
                             csvPreview.innerHTML = `<h3>Xem trước (${validGames.length}/${validGamesAll.length} game hợp lệ):</h3>
@@ -1337,21 +2189,48 @@
                 // Get the highest existing ID
                 const highestId = games.length > 0 ? Math.max(...games.map(g => g.id)) : 0;
                 
+                // Check for duplicates and handle according to user preference
+                if (!skipDuplicatesCheckbox.checked) {
+                    const duplicates = parsedGames.filter(game => 
+                        isDuplicateGame(game.title)
+                    );
+                    
+                    if (duplicates.length > 0) {
+                        // Ask for confirmation before proceeding
+                        const confirmMsg = duplicates.length === 1 
+                            ? `Có 1 game trùng lặp: "${duplicates[0].title}". Bạn có muốn tiếp tục nhập không?` 
+                            : `Có ${duplicates.length} game trùng lặp. Bạn có muốn tiếp tục nhập không?`;
+                            
+                        if (!confirm(confirmMsg)) {
+                            showStatus('Đã hủy nhập game.');
+                            return;
+                        }
+                    }
+                }
+                
                 // Count new games actually added
                 let addedCount = 0;
                 
                 // Add IDs to new games and add them to the games array
+                const gamesToAdd = [];
+                
                 parsedGames.forEach((game, index) => {
-                    // Only add the game if it's not a duplicate or we're including duplicates
+                    // Only add the game if it's not a duplicate or we're not skipping duplicates
                     if (!skipDuplicatesCheckbox.checked || !isDuplicateGame(game.title)) {
                         game.id = highestId + index + 1;
-                        games.push(game);
+                        gamesToAdd.push(game);
                         addedCount++;
                     }
                 });
                 
+                // Add all games at once
+                games = [...games, ...gamesToAdd];
+                
                 // Save to localStorage
                 if (saveGamesToLocalStorage()) {
+                    // Update filtered games
+                    filteredGames = games;
+                    
                     // Render updated games list
                     renderGamesList();
                     
@@ -1376,14 +2255,15 @@
             }
         });
 
-        // Initialize: render games list and reset search and pagination
-        renderGamesList();
-        debug('Page initialization complete');
+        // Initialize the page
+        init();
         
         // Gán các hàm cho window để có thể gọi từ HTML
         window.editGame = editGame;
         window.deleteGame = deleteGame;
         window.changePage = changePage;
+        window.restoreOriginalPrice = restoreOriginalPrice;
+        window.deleteDiscountCode = deleteDiscountCode;
     </script>
 </body>
 </html>
