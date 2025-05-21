@@ -633,28 +633,31 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script>
-        // Kiểm tra xác thực khi trang được tải
-        function checkAuth() {
-            const authData = JSON.parse(localStorage.getItem('adminAuth') || '{}');
-            
-            // Kiểm tra xem đã đăng nhập và phiên chưa hết hạn
-            if (!authData.isLoggedIn || authData.expiry <= Date.now()) {
-                // Nếu chưa đăng nhập hoặc phiên đã hết hạn, chuyển hướng đến trang đăng nhập
-                window.location.href = 'login.html';
-                return false;
-            }
-            
-            // Hiển thị tên người dùng
-            document.getElementById('username').textContent = `Xin chào, ${authData.username}`;
-            
-            // Ẩn overlay xác thực
-            document.getElementById('authOverlay').style.display = 'none';
-            
-            return true;
-        }
-        
-        // Kiểm tra xác thực khi trang tải
-        setTimeout(checkAuth, 1000); // Chậm 1 giây để hiển thị animation
+        // Wrap the entire code in a DOMContentLoaded event to ensure DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Kiểm tra xác thực khi trang được tải
+                function checkAuth() {
+                    const authData = JSON.parse(localStorage.getItem('adminAuth') || '{}');
+                    
+                    // Kiểm tra xem đã đăng nhập và phiên chưa hết hạn
+                    if (!authData.isLoggedIn || authData.expiry <= Date.now()) {
+                        // Nếu chưa đăng nhập hoặc phiên đã hết hạn, chuyển hướng đến trang đăng nhập
+                        window.location.href = 'login.html';
+                        return false;
+                    }
+                    
+                    // Hiển thị tên người dùng
+                    document.getElementById('username').textContent = `Xin chào, ${authData.username}`;
+                    
+                    // Ẩn overlay xác thực
+                    document.getElementById('authOverlay').style.display = 'none';
+                    
+                    return true;
+                }
+                
+                // Kiểm tra xác thực khi trang tải
+                setTimeout(checkAuth, 1000); // Chậm 1 giây để hiển thị animation
         
         // Xử lý đăng xuất
         document.getElementById('logoutBtn').addEventListener('click', function() {
@@ -1770,7 +1773,12 @@
 
         // Initialize: render games list and reset search and pagination
         renderGamesList();
-        renderDiscountCodes();
+        
+        // Only call renderDiscountCodes if the element exists
+        if (document.getElementById('discountCodesList')) {
+            renderDiscountCodes();
+        }
+        
         debug('Page initialization complete');
         
         // Gán các hàm cho window để có thể gọi từ HTML
