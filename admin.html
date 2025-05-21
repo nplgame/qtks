@@ -301,15 +301,41 @@
             100% { transform: rotate(360deg); }
         }
 
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 10px;
-            }
+        .search-box {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
 
-            .user-info {
-                margin-top: 10px;
-            }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            border: none;
+            padding: 8px 12px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .pagination button:hover {
+            background-color: var(--primary-color);
+        }
+
+        .pagination button.active {
+            background-color: var(--primary-color);
+        }
+
+        .pagination button:disabled {
+            background-color: var(--darker-bg);
+            cursor: not-allowed;
+            opacity: 0.6;
         }
     </style>
 </head>
@@ -445,9 +471,21 @@
             </form>
         </div>
 
+        <!-- Search Box -->
+        <div class="search-box">
+            <div class="form-group">
+                <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm game...">
+            </div>
+        </div>
+
         <div class="games-list" id="gamesList">
             <h2>Danh Sách Game Hiện Tại</h2>
             <!-- Games will be dynamically listed here -->
+            
+            <!-- Pagination Controls -->
+            <div class="pagination" id="pagination">
+                <!-- Pagination buttons will be added here -->
+            </div>
         </div>
 
         <div class="debug-area" id="debugArea" style="display:none;">
@@ -696,7 +734,33 @@
             return games.some(game => game.title.toLowerCase() === title.toLowerCase());
         }
 
-        // Function to render the list of games
+        // DOM Elements for search and pagination
+        const searchInput = document.getElementById('searchInput');
+        const pagination = document.getElementById('pagination');
+        
+        // Pagination variables
+        let currentPage = 1;
+        const gamesPerPage = 10;
+        let filteredGames = [...games];
+        
+        // Search games
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.trim().toLowerCase();
+            
+            if (searchTerm === '') {
+                filteredGames = [...games];
+            } else {
+                filteredGames = games.filter(game => 
+                    game.title.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Reset to first page when searching
+            currentPage = 1;
+            renderGamesList();
+        });
+
+        // Function to render the list of games with pagination
         function renderGamesList() {
             const gamesList = document.getElementById('gamesList');
             
@@ -710,7 +774,16 @@
                 return;
             }
             
-            const gamesListContent = games.map(game => {
+            // Calculate total pages
+            const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
+            
+            // Get current page games
+            const startIndex = (currentPage - 1) * gamesPerPage;
+            const endIndex = Math.min(startIndex + gamesPerPage, filteredGames.length);
+            const currentGames = filteredGames.slice(startIndex, endIndex);
+            
+            // Generate game list HTML
+            const gamesListContent = currentGames.map(game => {
                 const isOnSale = isGameOnSale(game);
                 const displayPrice = isOnSale 
                     ? `<span class="price-original">${formatPrice(game.price)}</span><span class="price-sale">${formatPrice(getGameSalePrice(game))}</span> VND <span class="sale-label">Sale</span>` 
@@ -729,11 +802,92 @@
                 </div>
                 `;
             }).join('');
-
+            
+            // Generate pagination HTML
+            let paginationHTML = '';
+            
+            if (totalPages > 1) {
+                // Previous button
+                paginationHTML += `
+                    <button ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+                        &laquo; Trước
+                    </button>
+                `;
+                
+                // Page numbers
+                if (totalPages <= 7) {
+                    // Show all pages if 7 or fewer
+                    for (let i = 1; i <= totalPages; i++) {
+                        paginationHTML += `
+                            <button class="${currentPage === i ? 'active' : ''}" onclick="changePage(${i})">
+                                ${i}
+                            </button>
+                        `;
+                    }
+                } else {
+                    // Show first page
+                    paginationHTML += `
+                        <button class="${currentPage === 1 ? 'active' : ''}" onclick="changePage(1)">1</button>
+                    `;
+                    
+                    // Show ellipsis or pages
+                    if (currentPage > 3) {
+                        paginationHTML += `<button disabled>...</button>`;
+                    }
+                    
+                    // Show pages around current page
+                    const startPage = Math.max(2, currentPage - 1);
+                    const endPage = Math.min(totalPages - 1, currentPage + 1);
+                    
+                    for (let i = startPage; i <= endPage; i++) {
+                        paginationHTML += `
+                            <button class="${currentPage === i ? 'active' : ''}" onclick="changePage(${i})">
+                                ${i}
+                            </button>
+                        `;
+                    }
+                    
+                    // Show ellipsis or pages
+                    if (currentPage < totalPages - 2) {
+                        paginationHTML += `<button disabled>...</button>`;
+                    }
+                    
+                    // Show last page
+                    paginationHTML += `
+                        <button class="${currentPage === totalPages ? 'active' : ''}" onclick="changePage(${totalPages})">
+                            ${totalPages}
+                        </button>
+                    `;
+                }
+                
+                // Next button
+                paginationHTML += `
+                    <button ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+                        Tiếp &raquo;
+                    </button>
+                `;
+            }
+            
+            // Render game list and pagination
+            const searchResults = filteredGames.length !== games.length 
+                ? ` (Tìm thấy: ${filteredGames.length}/${games.length})` 
+                : ` (${games.length})`;
+                
             gamesList.innerHTML = `
-                <h2>Danh Sách Game Hiện Tại (${games.length})</h2>
-                ${gamesListContent}
+                <h2>Danh Sách Game Hiện Tại${searchResults}</h2>
+                ${gamesListContent.length > 0 ? gamesListContent : '<div class="game-item"><span>Không tìm thấy game nào phù hợp.</span></div>'}
+                <div class="pagination" id="pagination">
+                    ${paginationHTML}
+                </div>
             `;
+        }
+        
+        // Function to change page
+        function changePage(page) {
+            currentPage = page;
+            renderGamesList();
+            // Scroll back to top of game list
+            document.getElementById('gamesList').scrollIntoView({ behavior: 'smooth' });
         }
 
         // Function to delete a game
@@ -742,6 +896,22 @@
                 debug('Deleting game', gameId);
                 games = games.filter(game => game.id !== gameId);
                 if (saveGamesToLocalStorage()) {
+                    // Update filtered games
+                    const searchTerm = searchInput.value.trim().toLowerCase();
+                    if (searchTerm !== '') {
+                        filteredGames = games.filter(game => 
+                            game.title.toLowerCase().includes(searchTerm)
+                        );
+                    } else {
+                        filteredGames = [...games];
+                    }
+                    
+                    // Check if current page is still valid
+                    const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
+                    if (currentPage > totalPages && totalPages > 0) {
+                        currentPage = totalPages;
+                    }
+                    
                     renderGamesList();
                     showStatus('Đã xóa game thành công!');
                 }
@@ -1206,13 +1376,14 @@
             }
         });
 
-        // Initialize: render games list
+        // Initialize: render games list and reset search and pagination
         renderGamesList();
         debug('Page initialization complete');
         
         // Gán các hàm cho window để có thể gọi từ HTML
         window.editGame = editGame;
         window.deleteGame = deleteGame;
+        window.changePage = changePage;
     </script>
 </body>
 </html>
