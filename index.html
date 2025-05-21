@@ -279,15 +279,33 @@
             color: var(--price-color);
         }
 
+        .price-box-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
         .price-original {
             text-decoration: line-through;
             color: #999;
-            margin-right: 8px;
             font-size: 0.9rem;
+            display: block;
         }
 
         .price-sale {
             color: var(--sale-color);
+            font-weight: bold;
+        }
+
+        .discount-badge {
+            display: inline-block;
+            background-color: var(--sale-color);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-right: 5px;
+            vertical-align: middle;
         }
 
         .add-cart-btn {
@@ -313,6 +331,8 @@
             padding: 5px 10px;
             border-radius: 3px;
             font-weight: bold;
+            font-size: 0.9rem;
+            z-index: 2;
         }
 
         .game-card-wrapper {
@@ -588,6 +608,222 @@
                     <li><a href="#">Game mới</a></li>
                     <li><a href="#">Game hot</a></li>
                     <li><a href="#">Game giảm giá</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Hỗ trợ</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Trung tâm hỗ trợ</a></li>
+                    <li><a href="#">FAQ</a></li>
+                    <li><a href="#">Liên hệ</a></li>
+                    <li><a href="#">Chính sách</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Liên hệ</h3>
+                <ul class="footer-links">
+                    <li>Email: support@gamestore.com</li>
+                    <li>Điện thoại: +84 123 456 789</li>
+                    <li>Địa chỉ: 123 Đường Game, TP. Hồ Chí Minh</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            &copy; 2025 Game Store. Tất cả quyền được bảo lưu.
+            <a href="admin.html" class="admin-link">Admin</a>
+        </div>
+    </footer>
+
+    <script>
+        // Variables
+        let games = [];
+        let filteredGames = [];
+        let currentPage = 1;
+        const gamesPerPage = 10;
+        let activeCategory = 'all';
+        let minPriceFilter = null;
+        let maxPriceFilter = null;
+        let searchFilter = '';
+
+        // DOM Elements
+        const gamesGrid = document.getElementById('gamesGrid');
+        const pagination = document.getElementById('pagination');
+        const errorMessage = document.getElementById('errorMessage');
+        const gameCount = document.getElementById('gameCount');
+        const gamesTitle = document.getElementById('gamesTitle');
+        const searchInput = document.getElementById('searchInput');
+        const categoryButtons = document.querySelectorAll('.category');
+        const minPriceInput = document.getElementById('minPrice');
+        const maxPriceInput = document.getElementById('maxPrice');
+        const applyFilterBtn = document.getElementById('applyFilter');
+        const resetFilterBtn = document.getElementById('resetFilter');
+        const heroButton = document.querySelector('.hero-button');
+
+        // Hàm tính phần trăm giảm giá
+        function calculateDiscountPercentage(originalPrice, currentPrice) {
+            if (originalPrice <= 0 || currentPrice >= originalPrice) return 0;
+            const discount = originalPrice - currentPrice;
+            const percentage = Math.round((discount / originalPrice) * 100);
+            return percentage;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGames();
+            
+            // Event listeners
+            searchInput.addEventListener('input', handleSearch);
+            categoryButtons.forEach(btn => {
+                btn.addEventListener('click', () => handleCategoryFilter(btn.dataset.category));
+            });
+            
+            applyFilterBtn.addEventListener('click', applyPriceFilter);
+            resetFilterBtn.addEventListener('click', resetFilters);
+            heroButton.addEventListener('click', () => handleCategoryFilter('hot'));
+        });
+
+        // Load games from localStorage
+        function loadGames() {
+            try {
+                // Thử tải dữ liệu xuất từ admin panel trước (có thông tin giảm giá đầy đủ)
+                const exportedGames = localStorage.getItem('exportedGames');
+                if (exportedGames) {
+                    try {
+                        games = JSON.parse(exportedGames);
+                        console.log('Đã tải dữ liệu từ exportedGames:', games.length);
+                        // Đã có thông tin giảm giá, tiếp tục xử lý
+                        applyFilters();
+                        return;
+                    } catch (error) {
+                        console.error('Lỗi khi tải exportedGames:', error);
+                        // Tiếp tục tải dữ liệu thông thường
+                    }
+                }
+
+                const storedGames = localStorage.getItem('games');
+                if (storedGames) {
+                    games = JSON.parse(storedGames);
+                    console.log('Loaded games:', games.length);
+                    
+                    // Ensure all games have required properties
+                    games.forEach(game => {
+                        if (!game.hasOwnProperty('originalPrice')) {
+                            game.originalPrice = game.price;
+                        }
+                    });
+                    
+                    // Load sale config
+                    loadSaleConfig();
+                    
+                    // Apply initial filtering
+                    applyFilters();
+                } else {
+                    showError('Không tìm thấy dữ liệu game!');
+                }
+            } catch (error) {
+                console.error('Error loading games:', error);
+                showError('Lỗi khi tải dữ liệu game!');
+            }
+        }
+
+        // Load sale configuration from localStorage
+        function loadSaleConfig() {
+            try {
+                const storedSaleConfig = localStorage.getItem('saleConfig');
+                if (storedSaleConfig) {
+                    saleConfig = JSON.parse(storedSaleConfig);
+                    console.log('Loaded sale config:', saleConfig);
+                }
+                
+                // Load discount codes
+                const storedCodes = localStorage.getItem('discountCodes');
+                if (storedCodes) {
+                    discountCodes = JSON.parse(storedCodes);
+                    console.log('Loaded discount codes:', discountCodes);
+                }
+            } catch (error) {
+                console.error('Error loading sale config:', error);
+            }
+        }
+
+        // Apply all filters and render games
+        function applyFilters() {
+            // Start with all games
+            filteredGames = [...games];
+            
+            // Apply category filter
+            if (activeCategory !== 'all') {
+                if (activeCategory === 'sale') {
+                    // Show games on sale (price different from original price)
+                    filteredGames = filteredGames.filter(game => 
+                        game.price !== game.originalPrice
+                    );
+                } else {
+                    // Filter by category
+                    filteredGames = filteredGames.filter(game => 
+                        game.categories && game.categories.includes(activeCategory)
+                    );
+                }
+            }
+            
+            // Apply price filter
+            if (minPriceFilter !== null) {
+                filteredGames = filteredGames.filter(game => game.price >= minPriceFilter);
+            }
+            
+            if (maxPriceFilter !== null) {
+                filteredGames = filteredGames.filter(game => game.price <= maxPriceFilter);
+            }
+            
+            // Apply search filter
+            if (searchFilter && searchFilter.trim() !== '') {
+                const searchTerm = searchFilter.trim().toLowerCase();
+                filteredGames = filteredGames.filter(game => 
+                    game.title.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Reset to first page when filters change
+            currentPage = 1;
+            
+            // Update page title based on active filter
+            updatePageTitle();
+            
+            // Render filtered games
+            renderGames();
+        }
+
+        // Update page title based on active filter
+        function updatePageTitle() {
+            let title = '';
+            
+            switch (activeCategory) {
+                case 'all':
+                    title = 'Tất cả game';
+                    break;
+                case 'action':
+                    title = 'Game Hành Động';
+                    break;
+                case 'rpg':
+                    title = 'Game Nhập Vai';
+                    break;
+                case 'strategy':
+                    title = 'Game Chiến Thuật';
+                    break;
+                case 'sport':
+                    title = 'Game Thể Thao';
+                    break;
+                case 'hot':
+                    title = 'Game Hot';
+                    break;
+                case 'sale':
+                    title = 'Game Giảm Giá';
+                    break;
+                default:
+                    title = 'Game';
                 </ul>
             </div>
             
