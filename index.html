@@ -618,422 +618,551 @@
     </footer>
 
     <script>
-        // Variables
-        let games = [];
-        let filteredGames = [];
-        let currentPage = 1;
-        const gamesPerPage = 10;
-        let activeCategory = 'all';
-        let minPriceFilter = null;
-        let maxPriceFilter = null;
-        let searchFilter = '';
+       // Variables
+let games = [];
+let filteredGames = [];
+let currentPage = 1;
+const gamesPerPage = 10;
+let activeCategory = 'all';
+let minPriceFilter = null;
+let maxPriceFilter = null;
+let searchFilter = '';
+let saleConfig = {
+    enabled: true,
+    minThreshold: 0,
+    maxThreshold: 10000000,
+    type: 'fixed',
+    salePrice: 199000,
+    salePercent: 30
+};
+let discountCodes = [];
 
-        // DOM Elements
-        const gamesGrid = document.getElementById('gamesGrid');
-        const pagination = document.getElementById('pagination');
-        const errorMessage = document.getElementById('errorMessage');
-        const gameCount = document.getElementById('gameCount');
-        const gamesTitle = document.getElementById('gamesTitle');
-        const searchInput = document.getElementById('searchInput');
-        const categoryButtons = document.querySelectorAll('.category');
-        const minPriceInput = document.getElementById('minPrice');
-        const maxPriceInput = document.getElementById('maxPrice');
-        const applyFilterBtn = document.getElementById('applyFilter');
-        const resetFilterBtn = document.getElementById('resetFilter');
-        const heroButton = document.querySelector('.hero-button');
+// DOM Elements
+const gamesGrid = document.getElementById('gamesGrid');
+const pagination = document.getElementById('pagination');
+const errorMessage = document.getElementById('errorMessage');
+const gameCount = document.getElementById('gameCount');
+const gamesTitle = document.getElementById('gamesTitle');
+const searchInput = document.getElementById('searchInput');
+const categoryButtons = document.querySelectorAll('.category');
+const minPriceInput = document.getElementById('minPrice');
+const maxPriceInput = document.getElementById('maxPrice');
+const applyFilterBtn = document.getElementById('applyFilter');
+const resetFilterBtn = document.getElementById('resetFilter');
+const heroButton = document.querySelector('.hero-button');
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadGames();
-            
-            // Event listeners
-            searchInput.addEventListener('input', handleSearch);
-            categoryButtons.forEach(btn => {
-                btn.addEventListener('click', () => handleCategoryFilter(btn.dataset.category));
-            });
-            
-            applyFilterBtn.addEventListener('click', applyPriceFilter);
-            resetFilterBtn.addEventListener('click', resetFilters);
-            heroButton.addEventListener('click', () => handleCategoryFilter('hot'));
-        });
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    loadGames();
+    
+    // Event listeners
+    searchInput.addEventListener('input', handleSearch);
+    categoryButtons.forEach(btn => {
+        btn.addEventListener('click', () => handleCategoryFilter(btn.dataset.category));
+    });
+    
+    applyFilterBtn.addEventListener('click', applyPriceFilter);
+    resetFilterBtn.addEventListener('click', resetFilters);
+    heroButton.addEventListener('click', () => handleCategoryFilter('hot'));
+});
 
-        // Load games from localStorage
-        function loadGames() {
-            try {
-                const storedGames = localStorage.getItem('games');
-                if (storedGames) {
-                    games = JSON.parse(storedGames);
-                    console.log('Loaded games:', games.length);
-                    
-                    // Ensure all games have required properties
-                    games.forEach(game => {
-                        if (!game.hasOwnProperty('originalPrice')) {
-                            game.originalPrice = game.price;
-                        }
-                    });
-                    
-                    // Load sale config
-                    loadSaleConfig();
-                    
-                    // Apply initial filtering
-                    applyFilters();
-                } else {
-                    showError('Không tìm thấy dữ liệu game!');
-                }
-            } catch (error) {
-                console.error('Error loading games:', error);
-                showError('Lỗi khi tải dữ liệu game!');
-            }
-        }
-
-        // Load sale configuration from localStorage
-        function loadSaleConfig() {
-            try {
-                const storedSaleConfig = localStorage.getItem('saleConfig');
-                if (storedSaleConfig) {
-                    saleConfig = JSON.parse(storedSaleConfig);
-                    console.log('Loaded sale config:', saleConfig);
-                }
-                
-                // Load discount codes
-                const storedCodes = localStorage.getItem('discountCodes');
-                if (storedCodes) {
-                    discountCodes = JSON.parse(storedCodes);
-                    console.log('Loaded discount codes:', discountCodes);
-                }
-            } catch (error) {
-                console.error('Error loading sale config:', error);
-            }
-        }
-
-        // Apply all filters and render games
-        function applyFilters() {
-            // Start with all games
-            filteredGames = [...games];
+// Load games from localStorage
+function loadGames() {
+    try {
+        const storedGames = localStorage.getItem('games');
+        if (storedGames) {
+            games = JSON.parse(storedGames);
+            console.log('Loaded games:', games.length);
             
-            // Apply category filter
-            if (activeCategory !== 'all') {
-                if (activeCategory === 'sale') {
-                    // Show games on sale (price different from original price)
-                    filteredGames = filteredGames.filter(game => 
-                        game.price !== game.originalPrice
-                    );
-                } else {
-                    // Filter by category
-                    filteredGames = filteredGames.filter(game => 
-                        game.categories && game.categories.includes(activeCategory)
-                    );
-                }
-            }
-            
-            // Apply price filter
-            if (minPriceFilter !== null) {
-                filteredGames = filteredGames.filter(game => game.price >= minPriceFilter);
-            }
-            
-            if (maxPriceFilter !== null) {
-                filteredGames = filteredGames.filter(game => game.price <= maxPriceFilter);
-            }
-            
-            // Apply search filter
-            if (searchFilter && searchFilter.trim() !== '') {
-                const searchTerm = searchFilter.trim().toLowerCase();
-                filteredGames = filteredGames.filter(game => 
-                    game.title.toLowerCase().includes(searchTerm)
-                );
-            }
-            
-            // Reset to first page when filters change
-            currentPage = 1;
-            
-            // Update page title based on active filter
-            updatePageTitle();
-            
-            // Render filtered games
-            renderGames();
-        }
-
-        // Update page title based on active filter
-        function updatePageTitle() {
-            let title = '';
-            
-            switch (activeCategory) {
-                case 'all':
-                    title = 'Tất cả game';
-                    break;
-                case 'action':
-                    title = 'Game Hành Động';
-                    break;
-                case 'rpg':
-                    title = 'Game Nhập Vai';
-                    break;
-                case 'strategy':
-                    title = 'Game Chiến Thuật';
-                    break;
-                case 'sport':
-                    title = 'Game Thể Thao';
-                    break;
-                case 'hot':
-                    title = 'Game Hot';
-                    break;
-                case 'sale':
-                    title = 'Game Giảm Giá';
-                    break;
-                default:
-                    title = 'Game';
-            }
-            
-            gamesTitle.textContent = title;
-            gameCount.textContent = `(${filteredGames.length})`;
-        }
-
-        // Format price with thousands separator
-        function formatPrice(price) {
-            return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        }
-
-        // Handle search input
-        function handleSearch() {
-            searchFilter = searchInput.value;
-            applyFilters();
-        }
-
-        // Handle category filter
-        function handleCategoryFilter(category) {
-            activeCategory = category;
-            
-            // Update active category button
-            categoryButtons.forEach(btn => {
-                if (btn.dataset.category === category) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
+            // Ensure all games have required properties
+            games.forEach(game => {
+                if (!game.hasOwnProperty('originalPrice')) {
+                    game.originalPrice = game.price;
                 }
             });
             
+            // Load sale config
+            loadSaleConfig();
+            
+            // Apply initial filtering
             applyFilters();
+        } else {
+            showError('Không tìm thấy dữ liệu game!');
         }
+    } catch (error) {
+        console.error('Error loading games:', error);
+        showError('Lỗi khi tải dữ liệu game!');
+    }
+}
 
-        // Apply price filter
-        function applyPriceFilter() {
-            minPriceFilter = minPriceInput.value ? parseInt(minPriceInput.value) : null;
-            maxPriceFilter = maxPriceInput.value ? parseInt(maxPriceInput.value) : null;
-            
-            applyFilters();
+// Load sale configuration from localStorage
+function loadSaleConfig() {
+    try {
+        const storedSaleConfig = localStorage.getItem('saleConfig');
+        if (storedSaleConfig) {
+            saleConfig = JSON.parse(storedSaleConfig);
+            console.log('Loaded sale config:', saleConfig);
         }
-
-        // Reset all filters
-        function resetFilters() {
-            activeCategory = 'all';
-            minPriceFilter = null;
-            maxPriceFilter = null;
-            searchFilter = '';
-            
-            // Reset UI
-            categoryButtons.forEach(btn => {
-                if (btn.dataset.category === 'all') {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-            
-            minPriceInput.value = '';
-            maxPriceInput.value = '';
-            searchInput.value = '';
-            
-            applyFilters();
+        
+        // Load discount codes
+        const storedCodes = localStorage.getItem('discountCodes');
+        if (storedCodes) {
+            discountCodes = JSON.parse(storedCodes);
+            console.log('Loaded discount codes:', discountCodes);
         }
+    } catch (error) {
+        console.error('Error loading sale config:', error);
+    }
+}
 
-        // Render games with pagination
-        function renderGames() {
-            // Calculate total pages and current page items
-            const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
-            const startIndex = (currentPage - 1) * gamesPerPage;
-            const endIndex = Math.min(startIndex + gamesPerPage, filteredGames.length);
-            const currentGames = filteredGames.slice(startIndex, endIndex);
+// Check if a game is eligible for the global sale
+function isGameOnSale(game) {
+    return saleConfig.enabled && 
+           game.originalPrice >= saleConfig.minThreshold && 
+           (saleConfig.maxThreshold === null || saleConfig.maxThreshold === 0 || game.originalPrice <= saleConfig.maxThreshold);
+}
+
+// Get applicable discount code for a game
+function getApplicableDiscountCode(game) {
+    if (!discountCodes || discountCodes.length === 0) return null;
+    
+    // Find a valid discount code for this game
+    for (const code of discountCodes) {
+        if (game.originalPrice >= (code.minPrice || 0) && 
+            (code.maxPrice === null || code.maxPrice === 0 || game.originalPrice <= code.maxPrice)) {
+            return code;
+        }
+    }
+    
+    return null;
+}
+
+// Calculate price with discount code applied
+function calculateDiscountedPrice(originalPrice, discountCode) {
+    if (!discountCode) return originalPrice;
+    
+    if (discountCode.type === 'fixed') {
+        return Math.max(1, originalPrice - discountCode.amount);
+    } else {
+        const discountAmount = Math.round(originalPrice * (discountCode.amount / 100));
+        return Math.max(1, originalPrice - discountAmount);
+    }
+}
+
+// Get the sale price for a game based on global settings
+function getGameSalePrice(game) {
+    if (isGameOnSale(game)) {
+        if (saleConfig.type === 'fixed') {
+            return Math.min(game.originalPrice, saleConfig.salePrice); // Ensure sale price isn't higher than original
+        } else {
+            // Calculate percentage discount
+            const discountAmount = Math.round(game.originalPrice * (saleConfig.salePercent / 100));
+            return Math.max(1, game.originalPrice - discountAmount);
+        }
+    }
+    return game.originalPrice;
+}
+
+// Get the discount percentage for a game
+function getDiscountPercentage(originalPrice, salePrice) {
+    if (!originalPrice || !salePrice || originalPrice <= salePrice) return 0;
+    return Math.round((1 - salePrice / originalPrice) * 100);
+}
+
+// Get discount info for display
+function getDiscountInfo(game) {
+    // Check for actual sale price different from original
+    if (game.price === game.originalPrice) {
+        return {
+            isOnSale: false,
+            percentage: 0,
+            discountType: null,
+            finalPrice: game.price
+        };
+    }
+    
+    // Game is on sale
+    const percentage = getDiscountPercentage(game.originalPrice, game.price);
+    
+    // Check if game is eligible for global sale
+    if (isGameOnSale(game)) {
+        return {
+            isOnSale: true,
+            percentage: percentage,
+            discountType: saleConfig.type === 'fixed' ? 'fixed' : 'percent',
+            discountValue: saleConfig.type === 'fixed' ? saleConfig.salePrice : saleConfig.salePercent,
+            finalPrice: game.price
+        };
+    }
+    
+    // Check if game has discount code
+    const discountCode = getApplicableDiscountCode(game);
+    if (discountCode) {
+        return {
+            isOnSale: true,
+            percentage: percentage,
+            discountType: discountCode.type,
+            discountValue: discountCode.amount,
+            discountCode: discountCode.code,
+            finalPrice: game.price
+        };
+    }
+    
+    // Generic sale (price was manually adjusted)
+    return {
+        isOnSale: true,
+        percentage: percentage,
+        discountType: 'manual',
+        finalPrice: game.price
+    };
+}
+
+// Apply all filters and render games
+function applyFilters() {
+    // Start with all games
+    filteredGames = [...games];
+    
+    // Apply category filter
+    if (activeCategory !== 'all') {
+        if (activeCategory === 'sale') {
+            // Show games on sale (price different from original price)
+            filteredGames = filteredGames.filter(game => 
+                game.price !== game.originalPrice
+            );
+        } else {
+            // Filter by category
+            filteredGames = filteredGames.filter(game => 
+                game.categories && game.categories.includes(activeCategory)
+            );
+        }
+    }
+    
+    // Apply price filter
+    if (minPriceFilter !== null) {
+        filteredGames = filteredGames.filter(game => game.price >= minPriceFilter);
+    }
+    
+    if (maxPriceFilter !== null) {
+        filteredGames = filteredGames.filter(game => game.price <= maxPriceFilter);
+    }
+    
+    // Apply search filter
+    if (searchFilter && searchFilter.trim() !== '') {
+        const searchTerm = searchFilter.trim().toLowerCase();
+        filteredGames = filteredGames.filter(game => 
+            game.title.toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    // Reset to first page when filters change
+    currentPage = 1;
+    
+    // Update page title based on active filter
+    updatePageTitle();
+    
+    // Render filtered games
+    renderGames();
+}
+
+// Update page title based on active filter
+function updatePageTitle() {
+    let title = '';
+    
+    switch (activeCategory) {
+        case 'all':
+            title = 'Tất cả game';
+            break;
+        case 'action':
+            title = 'Game Hành Động';
+            break;
+        case 'rpg':
+            title = 'Game Nhập Vai';
+            break;
+        case 'strategy':
+            title = 'Game Chiến Thuật';
+            break;
+        case 'sport':
+            title = 'Game Thể Thao';
+            break;
+        case 'hot':
+            title = 'Game Hot';
+            break;
+        case 'sale':
+            title = 'Game Giảm Giá';
+            break;
+        default:
+            title = 'Game';
+    }
+    
+    gamesTitle.textContent = title;
+    gameCount.textContent = `(${filteredGames.length})`;
+}
+
+// Format price with thousands separator
+function formatPrice(price) {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+// Handle search input
+function handleSearch() {
+    searchFilter = searchInput.value;
+    applyFilters();
+}
+
+// Handle category filter
+function handleCategoryFilter(category) {
+    activeCategory = category;
+    
+    // Update active category button
+    categoryButtons.forEach(btn => {
+        if (btn.dataset.category === category) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    applyFilters();
+}
+
+// Apply price filter
+function applyPriceFilter() {
+    minPriceFilter = minPriceInput.value ? parseInt(minPriceInput.value) : null;
+    maxPriceFilter = maxPriceInput.value ? parseInt(maxPriceInput.value) : null;
+    
+    applyFilters();
+}
+
+// Reset all filters
+function resetFilters() {
+    activeCategory = 'all';
+    minPriceFilter = null;
+    maxPriceFilter = null;
+    searchFilter = '';
+    
+    // Reset UI
+    categoryButtons.forEach(btn => {
+        if (btn.dataset.category === 'all') {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    minPriceInput.value = '';
+    maxPriceInput.value = '';
+    searchInput.value = '';
+    
+    applyFilters();
+}
+
+// Render games with pagination
+function renderGames() {
+    // Calculate total pages and current page items
+    const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
+    const startIndex = (currentPage - 1) * gamesPerPage;
+    const endIndex = Math.min(startIndex + gamesPerPage, filteredGames.length);
+    const currentGames = filteredGames.slice(startIndex, endIndex);
+    
+    // Render games
+    if (currentGames.length === 0) {
+        gamesGrid.innerHTML = `
+            <div class="no-games">
+                <h3>Không tìm thấy game nào phù hợp</h3>
+                <p>Vui lòng thử điều chỉnh bộ lọc</p>
+            </div>
+        `;
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    // Generate HTML for games
+    const gamesHTML = currentGames.map(game => {
+        // Get discount information
+        const discountInfo = getDiscountInfo(game);
+        
+        // Generate category badges
+        const categoriesHTML = game.categories.map(category => {
+            const categoryClass = category === 'hot' ? 'hot-category' : 
+                                category === 'action' ? 'action-category' : 
+                                category === 'rpg' ? 'rpg-category' : 
+                                category === 'strategy' ? 'strategy-category' : 
+                                category === 'sport' ? 'sport-category' : '';
+                                
+            return `<span class="game-category ${categoryClass}">${getCategoryName(category)}</span>`;
+        }).join('');
+        
+        // Add sale category badge if on sale
+        let saleCategory = '';
+        if (discountInfo.isOnSale) {
+            saleCategory = `<span class="game-category hot-category">Giảm ${discountInfo.percentage}%</span>`;
+        }
+        
+        // Generate price display
+        let priceHTML = '';
+        if (discountInfo.isOnSale) {
+            priceHTML = `
+                <span class="price-original">${formatPrice(game.originalPrice)}</span>
+                <span class="price-sale">${formatPrice(game.price)}</span> VND
+            `;
+        } else {
+            priceHTML = `${formatPrice(game.price)} VND`;
+        }
+        
+        // Sale badge
+        let saleBadge = '';
+        let discountTypeBadge = '';
+        if (discountInfo.isOnSale) {
+            saleBadge = `<div class="sale-badge">-${discountInfo.percentage}%</div>`;
             
-            // Render games
-            if (currentGames.length === 0) {
-                gamesGrid.innerHTML = `
-                    <div class="no-games">
-                        <h3>Không tìm thấy game nào phù hợp</h3>
-                        <p>Vui lòng thử điều chỉnh bộ lọc</p>
+            // Show discount type badge if applicable
+            if (discountInfo.discountType === 'fixed') {
+                discountTypeBadge = `<div class="discount-type-badge">Giá cố định: ${formatPrice(discountInfo.discountValue)}đ</div>`;
+            } else if (discountInfo.discountType === 'percent') {
+                discountTypeBadge = `<div class="discount-type-badge">Giảm: ${discountInfo.discountValue}%</div>`;
+            } else if (discountInfo.discountCode) {
+                discountTypeBadge = `<div class="discount-type-badge">Mã: ${discountInfo.discountCode}</div>`;
+            }
+        }
+        
+        return `
+        <div class="game-card-wrapper">
+            ${saleBadge}
+            ${discountTypeBadge}
+            <div class="game-card">
+                <img src="${game.image}" alt="${game.title}" class="game-image">
+                <div class="game-content">
+                    <h3 class="game-title">${game.title}</h3>
+                    <div class="game-categories">
+                        ${categoriesHTML}
+                        ${saleCategory}
                     </div>
-                `;
-                pagination.innerHTML = '';
-                return;
-            }
-            
-            // Generate HTML for games
-            const gamesHTML = currentGames.map(game => {
-                const isOnSale = game.price !== game.originalPrice;
-                
-                // Generate category badges
-                const categoriesHTML = game.categories.map(category => {
-                    const categoryClass = category === 'hot' ? 'hot-category' : 
-                                        category === 'action' ? 'action-category' : 
-                                        category === 'rpg' ? 'rpg-category' : 
-                                        category === 'strategy' ? 'strategy-category' : 
-                                        category === 'sport' ? 'sport-category' : '';
-                                        
-                    return `<span class="game-category ${categoryClass}">${getCategoryName(category)}</span>`;
-                }).join('');
-                
-                // Generate price display
-                let priceHTML = '';
-                if (isOnSale) {
-                    priceHTML = `
-                        <span class="price-original">${formatPrice(game.originalPrice)}</span>
-                        <span class="price-sale">${formatPrice(game.price)}</span> VND
-                    `;
-                } else {
-                    priceHTML = `${formatPrice(game.price)} VND`;
-                }
-                
-                // Calculate discount percentage for sale badge
-                let saleBadge = '';
-                if (isOnSale) {
-                    const discountPercent = Math.round((1 - game.price / game.originalPrice) * 100);
-                    saleBadge = `<div class="sale-badge">-${discountPercent}%</div>`;
-                }
-                
-                return `
-                <div class="game-card-wrapper">
-                    ${saleBadge}
-                    <div class="game-card">
-                        <img src="${game.image}" alt="${game.title}" class="game-image">
-                        <div class="game-content">
-                            <h3 class="game-title">${game.title}</h3>
-                            <div class="game-categories">
-                                ${categoriesHTML}
-                            </div>
-                            <div class="game-price-box">
-                                <div class="game-price">${priceHTML}</div>
-                                <button class="add-cart-btn">Mua</button>
-                            </div>
-                        </div>
+                    <div class="game-price-box">
+                        <div class="game-price">${priceHTML}</div>
+                        <button class="add-cart-btn">Mua</button>
                     </div>
                 </div>
-                `;
-            }).join('');
-            
-            gamesGrid.innerHTML = gamesHTML;
-            
-            // Render pagination
-            renderPagination(totalPages);
-        }
+            </div>
+        </div>
+        `;
+    }).join('');
+    
+    gamesGrid.innerHTML = gamesHTML;
+    
+    // Render pagination
+    renderPagination(totalPages);
+}
 
-        // Convert category id to display name
-        function getCategoryName(category) {
-            switch(category) {
-                case 'action':
-                    return 'Hành Động';
-                case 'rpg':
-                    return 'Nhập Vai';
-                case 'strategy':
-                    return 'Chiến Thuật';
-                case 'sport':
-                    return 'Thể Thao';
-                case 'hot':
-                    return 'Hot';
-                case 'other':
-                    return 'Khác';
-                default:
-                    return category;
-            }
-        }
+// Convert category id to display name
+function getCategoryName(category) {
+    switch(category) {
+        case 'action':
+            return 'Hành Động';
+        case 'rpg':
+            return 'Nhập Vai';
+        case 'strategy':
+            return 'Chiến Thuật';
+        case 'sport':
+            return 'Thể Thao';
+        case 'hot':
+            return 'Hot';
+        case 'other':
+            return 'Khác';
+        default:
+            return category;
+    }
+}
 
-        // Render pagination controls
-        function renderPagination(totalPages) {
-            if (totalPages <= 1) {
-                pagination.innerHTML = '';
-                return;
-            }
-            
-            let paginationHTML = '';
-            
-            // Previous button
+// Render pagination controls
+function renderPagination(totalPages) {
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    let paginationHTML = '';
+    
+    // Previous button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+            &laquo;
+        </button>
+    `;
+    
+    // Page buttons
+    if (totalPages <= 7) {
+        // Show all pages if 7 or fewer
+        for (let i = 1; i <= totalPages; i++) {
             paginationHTML += `
-                <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
-                    &laquo;
+                <button class="pagination-btn ${currentPage === i ? 'active' : ''}" onclick="changePage(${i})">
+                    ${i}
                 </button>
             `;
-            
-            // Page buttons
-            if (totalPages <= 7) {
-                // Show all pages if 7 or fewer
-                for (let i = 1; i <= totalPages; i++) {
-                    paginationHTML += `
-                        <button class="pagination-btn ${currentPage === i ? 'active' : ''}" onclick="changePage(${i})">
-                            ${i}
-                        </button>
-                    `;
-                }
-            } else {
-                // Show first page
-                paginationHTML += `
-                    <button class="pagination-btn ${currentPage === 1 ? 'active' : ''}" onclick="changePage(1)">
-                        1
-                    </button>
-                `;
-                
-                // Show ellipsis or pages
-                if (currentPage > 3) {
-                    paginationHTML += `<button class="pagination-btn" disabled>...</button>`;
-                }
-                
-                // Show pages around current page
-                const startPage = Math.max(2, currentPage - 1);
-                const endPage = Math.min(totalPages - 1, currentPage + 1);
-                
-                for (let i = startPage; i <= endPage; i++) {
-                    paginationHTML += `
-                        <button class="pagination-btn ${currentPage === i ? 'active' : ''}" onclick="changePage(${i})">
-                            ${i}
-                        </button>
-                    `;
-                }
-                
-                // Show ellipsis or pages
-                if (currentPage < totalPages - 2) {
-                    paginationHTML += `<button class="pagination-btn" disabled>...</button>`;
-                }
-                
-                // Show last page
-                paginationHTML += `
-                    <button class="pagination-btn ${currentPage === totalPages ? 'active' : ''}" onclick="changePage(${totalPages})">
-                        ${totalPages}
-                    </button>
-                `;
-            }
-            
-            // Next button
+        }
+    } else {
+        // Show first page
+        paginationHTML += `
+            <button class="pagination-btn ${currentPage === 1 ? 'active' : ''}" onclick="changePage(1)">
+                1
+            </button>
+        `;
+        
+        // Show ellipsis or pages
+        if (currentPage > 3) {
+            paginationHTML += `<button class="pagination-btn" disabled>...</button>`;
+        }
+        
+        // Show pages around current page
+        const startPage = Math.max(2, currentPage - 1);
+        const endPage = Math.min(totalPages - 1, currentPage + 1);
+        
+        for (let i = startPage; i <= endPage; i++) {
             paginationHTML += `
-                <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
-                    &raquo;
+                <button class="pagination-btn ${currentPage === i ? 'active' : ''}" onclick="changePage(${i})">
+                    ${i}
                 </button>
             `;
-            
-            pagination.innerHTML = paginationHTML;
         }
-
-        // Change current page
-        function changePage(page) {
-            currentPage = page;
-            renderGames();
-            // Scroll back to top of games section
-            gamesGrid.scrollIntoView({ behavior: 'smooth' });
+        
+        // Show ellipsis or pages
+        if (currentPage < totalPages - 2) {
+            paginationHTML += `<button class="pagination-btn" disabled>...</button>`;
         }
+        
+        // Show last page
+        paginationHTML += `
+            <button class="pagination-btn ${currentPage === totalPages ? 'active' : ''}" onclick="changePage(${totalPages})">
+                ${totalPages}
+            </button>
+        `;
+    }
+    
+    // Next button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+            &raquo;
+        </button>
+    `;
+    
+    pagination.innerHTML = paginationHTML;
+}
 
-        // Show error message
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-        }
+// Change current page
+function changePage(page) {
+    currentPage = page;
+    renderGames();
+    // Scroll back to top of games section
+    gamesGrid.scrollIntoView({ behavior: 'smooth' });
+}
 
-        // Make changePage function global
-        window.changePage = changePage;
+// Show error message
+function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.style.display = 'block';
+}
+
+// Make changePage function global
+window.changePage = changePage;
     </script>
 </body>
 </html>
